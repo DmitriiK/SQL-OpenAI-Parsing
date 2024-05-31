@@ -1,0 +1,33 @@
+--
+CREATE PROCEDURE [dbo].[PullData_RussellUS2_IndexValue_prc]
+AS
+BEGIN
+  TRUNCATE TABLE stg.[RussellUS2_IndexValue_tbl]; 
+
+  CREATE table #IDs(Id INT);
+
+   WITH xxx AS (
+	 SELECT t.tradingItemId    FROM stg.[RussellUS2_IndexTradingItem_tbl] AS t
+		JOIN stg.RussellUS2_IndexToFeedType_vw AS ift 	on t.indexId = ift.indexCompanyId)
+    INSERT INTO  #IDs(Id) SELECT tradingItemId FROM xxx;
+
+	INSERT INTO  stg.[RussellUS2_IndexValue_tbl]
+	SELECT	t.tradingItemId,		p.pricingDate as valueDate,	p.priceClose as value
+	FROM 
+		[dbo].[Russell2_Stg_PriceIndex_tbl] AS p with (nolock)
+		JOIN #IDs AS t with (nolock)		on p.tradingItemId = t.tradingItemId
+END		
+--
+
+The output might be like this:
+--
+SP: [dbo].[PullData_RussellUS2_IndexValue_prc]
+Targets:
+   - stg.[RussellUS2_IndexValue_tbl]
+        Operations:
+           - Truncate
+           - Insert:
+                Sources:
+                   - stg.[RussellUS2_IndexTradingItem_tbl]
+                   - dbo.[Russell2_Stg_PriceIndex_tbl] 
+                   - stg.RussellUS2_IndexToFeedType_vw

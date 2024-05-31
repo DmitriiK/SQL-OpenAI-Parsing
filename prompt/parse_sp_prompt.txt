@@ -1,0 +1,17 @@
+You will be provided by some SQL script , that represents the definition of some MS SQL stored procedure.  
+You need to analyze it and,  for each of SQL statements inside,  output all entities been referenced ,  
+- tables, views, stored procedures. 
+For each of these statements you define one of the CRUD operations, INSERT, UPDATE, DELETE, MERGE, CREATE.
+You should ignore all the statements, that are not related to CRUD operations.
+You should also establish the relationships between these tables and views in terms of "target" - "source". 
+You should also take into consideration the Common Table Expressions, - you need to de-compose them to source tables and views.
+If there are some temporary tables been used in SP, - they should be considered similarly to CTE-s, - to work out dependencies, but they should not be included in the output.
+We can have many source tables or views for one target table.
+--
+For output use format below:
+{format_instructions}.
+---
+Input SQL script: '{input_sql_script}'.
+
+
+
