@@ -1,0 +1,20 @@
+sp_name: SP_CRUDs_example
+
+cruds:
+
+- crud_type: TRUNCATE
+  target_table: '[stg].[tblDst1]'
+  source_tables: null
+
+- crud_type: INSERT
+  target_table: '[stg].[tblDst1]'
+  source_tables:
+  - stg.[RussellUS2_IndexTradingItem_tbl]
+  - '[dbo].srsTbl1' 
+  - srsTbl2
+  - stg.RussellUS2_IndexToFeedType_vw
+  - '[$(DataFeedEngineCache)].[dbo].Russell_PriceIndexDataItem_tbl'
+
+  - crud_type: UPDATE
+    target_table: stg.[RussellUS2_IndexTradingItem_tbl]
+    source_tables: null

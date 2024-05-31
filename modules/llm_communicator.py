@@ -5,7 +5,7 @@ from langchain.output_parsers import YamlOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
-from config_data import OPENAI_API_KEY, PARSE_SP_PROMPT_PATH, LLM_MODEL_NAME
+from config_data import OPENAI_API_KEY, PARSE_SP_PROMPT_PATH, LLM_MODEL_NAME, SP_EXAMPLE_PATH, SP_EXAMPLE_OUTPUT_PATH
 from modules.data_classes import SP_CRUDs
 
 
@@ -22,6 +22,20 @@ class LLMCommunicator:
 
         with open(PARSE_SP_PROMPT_PATH) as f:
             pr_mess = f.read()
+            
+        with open(SP_EXAMPLE_PATH) as f:
+            sql_script_example = f.read()
+            
+        with open(SP_EXAMPLE_OUTPUT_PATH) as f:
+            example_output = f.read()
+            
+        example = f"""Input example:
+            --
+            {sql_script_example}.
+            --
+            Output:
+            {example_output}
+        """
 
         self.output_parser = YamlOutputParser(pydantic_object=SP_CRUDs)
         format_instructions = self.output_parser.get_format_instructions()
@@ -31,7 +45,7 @@ class LLMCommunicator:
             template=pr_mess,
             input_variables=['input_sql_script'],
             partial_variables={"format_instructions": format_instructions,
-                               # "example": example,
+                               "example": example,
                                },
         )
         self.chain = self.prompt | self.llm  # | output_parser

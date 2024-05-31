@@ -11,6 +11,7 @@ We can have many source tables or views for one target table.
 For output use format below:
 {format_instructions}.
 ---
+{example}
 Input SQL script: '{input_sql_script}'.
 
 

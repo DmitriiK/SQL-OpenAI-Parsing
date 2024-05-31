@@ -1,3 +1,4 @@
+sp_name: SP_CRUDs_example
 cruds:
 - crud_type: TRUNCATE
   source_tables: null
@@ -7,4 +8,3 @@ cruds:
   - '[dbo].src1'
   - dbo.src2
   target_table: '[stg].[targ1]'
-sp_name: SP_CRUDs_example

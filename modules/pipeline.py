@@ -23,7 +23,7 @@ def take_analyze_and_save():
     with open(sql_script_path) as f:
         script = f.read()
     out = model.request_and_parse(script)
-    print(out)
+    export_to_yaml(out, dir=r'.\data\output')
     
     
 def test_yaml():
