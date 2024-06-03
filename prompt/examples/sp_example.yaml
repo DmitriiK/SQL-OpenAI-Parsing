@@ -1,6 +1,6 @@
 sp_name: SP_CRUDs_example
 
-cruds:
+DCSs:
 
 - crud_type: TRUNCATE
   target_table: '[stg].[tblDst1]'
@@ -15,6 +15,15 @@ cruds:
   - stg.RussellUS2_IndexToFeedType_vw
   - '[$(DataFeedEngineCache)].[dbo].Russell_PriceIndexDataItem_tbl'
 
-  - crud_type: UPDATE
-    target_table: stg.[RussellUS2_IndexTradingItem_tbl]
-    source_tables: null
+- crud_type: UPDATE
+  target_table: stg.[RussellUS2_IndexTradingItem_tbl]
+  source_tables: null
+
+- crud_type: DELETE
+  target_table: RussellUS2_ConstituentDates_tbl
+  source_tables: null
+
+- crud_type: DELETE
+  target_table: RussellUS2_ConstituentDates_tbl
+  source_tables:
+  - '[$(CIQData)].dbo.ExchangeHoliday_tbl'

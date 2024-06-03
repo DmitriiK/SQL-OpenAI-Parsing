@@ -39,6 +39,14 @@ BEGIN
 
 		UPDATE  stg.[RussellUS2_IndexTradingItem_tbl]  SET [status]=1 WHERE [status]=0
 
+DELETE FROM  RussellUS2_ConstituentDates_tbl
+	WHERE datepart(WEEKDAY, readingDate) IN (1, 7)
+
+	DELETE FROM  RussellUS2_ConstituentDates_tbl
+	WHERE readingDate IN (SELECT holidayDate FROM [$(CIQData)].dbo.ExchangeHoliday_tbl with (nolock) WHERE exchangeId = 106)
+
+
+
 END
 ;
 

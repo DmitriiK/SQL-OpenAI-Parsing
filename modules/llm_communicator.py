@@ -6,7 +6,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
 from config_data import OPENAI_API_KEY, PARSE_SP_PROMPT_PATH, LLM_MODEL_NAME, SP_EXAMPLE_PATH, SP_EXAMPLE_OUTPUT_PATH
-from modules.data_classes import SP_CRUDs
+from modules.data_classes import SP_DCSs
 
 
 def _strip_square_brackets(data: str) -> str:
@@ -37,7 +37,7 @@ class LLMCommunicator:
             {example_output}
         """
 
-        self.output_parser = YamlOutputParser(pydantic_object=SP_CRUDs)
+        self.output_parser = YamlOutputParser(pydantic_object=SP_DCSs)
         format_instructions = self.output_parser.get_format_instructions()
         # print(format_instructions)
 
@@ -50,7 +50,7 @@ class LLMCommunicator:
         )
         self.chain = self.prompt | self.llm  # | output_parser
 
-    def request_and_parse(self, sql_script: str) -> SP_CRUDs:
+    def request_and_parse(self, sql_script: str) -> SP_DCSs:
         prompt_params = {'input_sql_script': sql_script}
         raw_r = self.chain.invoke(prompt_params)
         logging.info(f'got request from LLM, len = {len(raw_r.content)}, trying to parse')

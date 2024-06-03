@@ -1,0 +1,35 @@
+DCSs:
+- crud_type: DROP
+  source_tables: null
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_IndexSecurityValueLoad_tbl
+
+- crud_type: DROP
+  source_tables: null
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
+
+- crud_type: INSERT
+  source_tables:
+  - $(DataFeedEngineCache).dbo.RussellUS2_IndexConstituentLoad_tbl
+  - $(DataFeedEngineCache).dbo.Russell_PriceIndexConstituent_tbl
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
+
+- crud_type: DELETE
+  source_tables: null
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
+  
+- crud_type: DELETE
+  source_tables:
+  - $(CIQData).dbo.ExchangeHoliday_tbl
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
+- crud_type: CREATE
+  source_tables: null
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
+- crud_type: INSERT
+  source_tables:
+  - $(DataFeedEngineCache).dbo.Russell_PriceIndexConstituent_tbl
+  - $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_IndexSecurityValueLoad_tbl
+- crud_type: CREATE
+  source_tables: null
+  target_table: $(DataFeedEngineCache).dbo.RussellUS2_IndexSecurityValueLoad_tbl
+sp_name: PullData_RussellUS2_IndexSecurityValue_prc
