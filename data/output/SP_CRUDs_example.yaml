@@ -1,0 +1,9 @@
+sp_name: SP_CRUDs_example
+DCSs:
+- crud_type: TRUNCATE
+  target_table: '[stg].[targ1]'
+- crud_type: INSERT
+  target_table: '[stg].[targ1]'
+  source_tables:
+  - '[dbo].src1'
+  - dbo.src2
