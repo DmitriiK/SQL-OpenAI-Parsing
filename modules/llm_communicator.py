@@ -1,6 +1,7 @@
 import logging
 import re
 
+import tiktoken
 from langchain.output_parsers import YamlOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
@@ -17,6 +18,10 @@ class LLMCommunicator:
     def __init__(self):
         self.llm = ChatOpenAI(openai_api_key=OPENAI_API_KEY, model=LLM_MODEL_NAME, temperature=0)
         self.__prepare_prompt()
+        self.script_tokens = 0
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.encoding = tiktoken.encoding_for_model(LLM_MODEL_NAME)
 
     def __prepare_prompt(self):
 
@@ -52,11 +57,15 @@ class LLMCommunicator:
 
     def request_and_parse(self, sql_script: str) -> SP_DCSs:
         prompt_params = {'input_sql_script': sql_script}
+        self.script_tokens += len(self.encoding.encode(sql_script))
         raw_r = self.chain.invoke(prompt_params)
         logging.info(f'got request from LLM, len = {len(raw_r.content)}, trying to parse')
         raw_r.content = _strip_square_brackets(raw_r.content)  # otherwise it will fail on [dbo].
-        print(f'yaml: {raw_r.content}')
+        # print(f'yaml: {raw_r.content}')
         parsed_r = self.output_parser.parse(raw_r.content)
+        tu = raw_r.response_metadata['token_usage']
+        self.input_tokens += tu['prompt_tokens']
+        self.output_tokens += tu['completion_tokens']
         print(parsed_r)
         return parsed_r
 

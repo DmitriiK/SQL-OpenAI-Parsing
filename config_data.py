@@ -12,5 +12,9 @@ PARSE_SP_PROMPT_PATH = r'prompt\parse_sp_prompt.txt'
 SP_EXAMPLE_PATH = r'prompt\examples\sp_example.sql'
 SP_EXAMPLE_OUTPUT_PATH = r'prompt\examples\sp_example.yaml'
 
+INPUT_PATH = r'D:\projects\DataFeedEngine\DataFeedEngineIndex\*\Stored procedures\*\*.sql'
+OUTPUT_PATH = r'.\data\output'
+OUTPUT_FILE_EXTENSION = 'yaml'
+
 
 
