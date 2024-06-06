@@ -8,6 +8,7 @@ but you should consider these statements in further analysis.
 For each of DCS-s,  output all entities been referenced, - tables, views, stored procedures. 
 For each of these statements you define one of the data-changing operations, INSERT, UPDATE, DELETE, MERGE, CREATE, DROP.
 You should ignore all the statements, that are not related to the operations, that do not change data in the tables.
+'SELECT INTO <some_table> FROM ...' should be considered as INSERT.
 You should also establish the relationships between the tables (views), been referenced in the statements,
  in terms of "target" - "source". 
 You should also take into consideration the Common Table Expressions, - you need to de-compose them to source tables and views.

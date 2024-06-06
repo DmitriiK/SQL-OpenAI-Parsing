@@ -15,8 +15,6 @@ DCSs:
   target_table: $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
   source_tables:
   - $(CIQData).dbo.ExchangeHoliday_tbl
-- crud_type: CREATE
-  target_table: $(DataFeedEngineCache).dbo.RussellUS2_ConstituentDates_tbl
 - crud_type: INSERT
   target_table: $(DataFeedEngineCache).dbo.RussellUS2_IndexSecurityValueLoad_tbl
   source_tables:

@@ -22,14 +22,14 @@ def export_to_yaml(inst: SP_DCSs, dir: str = None, file_name: str = None):
         yaml_file.write(test_yml_str)
 
 
-def take_analyze_and_save(skip_existing = True):
- 
+def take_analyze_and_save(skip_existing=True):
     if skip_existing:
         already_done_sps = [Path(x).stem for x in 
                             glob.glob(fr'{OUTPUT_PATH}\*.{OUTPUT_FILE_EXTENSION}')]
     inp_files = glob.glob(INPUT_PATH, recursive=True)
     # sql_script_path = r'D:\projects\DataFeedEngine\DataFeedEngineIndex\stg\Stored procedures\PullData_RussellUS2_IndexSecurityValue_prc.sql'
     model = llmc.LLMCommunicator()
+    inp_files = [r'D:\projects\DataFeedEngine\DataFeedEngineIndex\stg\Stored procedures\PullData_RussellUS2_IndexSecurityValue_prc.sql']
     for sql_script_path in inp_files:
         if skip_existing:
             if Path(sql_script_path).stem in already_done_sps:
