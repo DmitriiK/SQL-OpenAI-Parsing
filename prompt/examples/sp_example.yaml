@@ -19,6 +19,11 @@ DCSs:
   target_table: stg.[RussellUS2_IndexTradingItem_tbl]
   source_tables: null
 
+- crud_type: MERGE
+  target_table: 'stg.[tblDst1]'
+  source_tables:
+  - '[dbo].[srsTbl3]'
+  
 - crud_type: DELETE
   target_table: RussellUS2_ConstituentDates_tbl
   source_tables: null

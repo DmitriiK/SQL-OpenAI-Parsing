@@ -37,7 +37,20 @@ BEGIN
 		WHERE 
 			p.endMktValue is not null
 
-		UPDATE  stg.[RussellUS2_IndexTradingItem_tbl]  SET [status]=1 WHERE [status]=0
+		UPDATE  stg.[RussellUS2_IndexTradingItem_tbl]  SET [status]=1 WHERE [status]=0 ;
+
+	MERGE stg.[tblDst1] AS DST
+	USING [dbo].srsTbl3 AS SRC WITH (NOLOCK)
+	    ON DST.ID = SRC.ID
+	WHEN MATCHED AND DST.identifierName <> SRC.identifierName THEN
+	UPDATE SET
+		identifierName = SRC.identifierName
+	WHEN NOT MATCHED BY TARGET THEN
+	INSERT (ID, identifierName)
+    		VALUES (SRC.ID, SRC.identifierName)
+    WHEN NOT MATCHED BY SOURCE THEN
+    		DELETE
+    
 
 DELETE FROM  RussellUS2_ConstituentDates_tbl
 	WHERE datepart(WEEKDAY, readingDate) IN (1, 7)
@@ -45,7 +58,7 @@ DELETE FROM  RussellUS2_ConstituentDates_tbl
 	DELETE FROM  RussellUS2_ConstituentDates_tbl
 	WHERE readingDate IN (SELECT holidayDate FROM [$(CIQData)].dbo.ExchangeHoliday_tbl with (nolock) WHERE exchangeId = 106)
 
-
+	
 
 END
 ;
