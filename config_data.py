@@ -6,7 +6,7 @@ from enum import Enum
 
 class GPT_Model(str, Enum):
     GPT_4 = 'gpt-4'
-    GPT_3_5_Turbo = 'gpt-3.5-turbo'
+    GPT_3_5_Turbo_0125 = 'gpt-3.5-turbo-0125'
     GPT_4o = 'gpt-4o'
 
     def __repr__(self) -> str:
