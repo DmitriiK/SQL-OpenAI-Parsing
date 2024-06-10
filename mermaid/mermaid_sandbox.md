@@ -1,4 +1,4 @@
-# First diagram 
+# RussellUS2_Constituent_tbl data lineage
 ```mermaid
 flowchart TD
    D1[Indexdata.dbo.IndexConstituent_tbl]
