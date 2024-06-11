@@ -49,16 +49,6 @@ def analyze_files(skip_existing=True):
         analyze_file(sql_script_path, model)
 
 
-def test_yaml():
-    print('test yaml')
-    sp_name = 'SP_CRUDs_example'
-    inst = SP_DCSs(sp_name=sp_name, DCSs=[DCS(target_table='[stg].[targ1]', crud_type=DCS_Type.TRUNCATE),
-                                          DCS(target_table='[stg].[targ1]', crud_type=DCS_Type.INSERT,
-                                                                            source_tables=['[dbo].src1', 'dbo.src2']),
-                                            ])
-    export_to_yaml(inst, r'.\data\output')
-    
-    
 
 
     

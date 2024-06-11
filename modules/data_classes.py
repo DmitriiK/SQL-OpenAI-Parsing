@@ -19,6 +19,8 @@ class DCS_Type(str, Enum):
 
 
 class DCS(BaseModel):
+    """Data changing SQL statement
+    """
     crud_type: DCS_Type = Field(description='One of possible SQL CRUD data-changing types')
     target_table: str = Field(description='Target table for data-changing SQL statement')
     source_tables: Optional[List[str]] = Field(description='Names of source tables or views for SQL statement')
@@ -39,3 +41,10 @@ class SP_DCSs(BaseModel):
         # Convert nested DCS objects to dictionaries
         data = {'sp_name': self.sp_name, 'DCSs': [dcs.to_dict() for dcs in self.DCSs]}
         return yaml.dump(data, sort_keys=False)
+    
+    @classmethod
+    def from_yaml_file(cls, file_path: str):
+        with open(file_path, 'r') as file:
+            yaml_data = yaml.safe_load(file)
+            inst = cls(**yaml_data)
+            return inst
