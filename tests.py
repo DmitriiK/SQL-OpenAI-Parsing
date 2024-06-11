@@ -2,6 +2,7 @@ import unittest
 
 from modules.data_classes import SP_DCSs, DCS, DCS_Type
 from modules.pipeline import export_to_yaml
+from modules.mermaider import build_upstream_chain
 
 fld = r"D:\projects\DataFeedEngine\DataFeedEngineIndex" 
 file_name = fld + r'\dbo\Stored Procedures\Merge\RussellUS\MergeData_RussellUS2_Constituent_prc.sql'
@@ -10,7 +11,7 @@ file_yml_to_dc = r'D:\projects\SQL-OpenAI-Parsing\data\output\MergeData_RussellU
 
 class TestChain(unittest.TestCase):
 
-    # @unittest.skip('no need')
+    @unittest.skip('no need')
     def test_yaml(self):
         print('test yaml')
         sp_name = 'SP_CRUDs_example'
@@ -20,14 +21,24 @@ class TestChain(unittest.TestCase):
                                                 ])
         export_to_yaml(inst, r'.\data\output')
 
-    # @unittest.skip('no need')
+    @unittest.skip('no need')
     def test_file_to_dc(self):
         """
         Test load file to data class
         """
         print('test_file_to_data class')
         inst = SP_DCSs.from_yaml_file(file_yml_to_dc)
-        print(inst) 
+        print(inst)
+        
+    def testchain(self):
+        ttn = 'stg.RussellUS2_Constituent_tbl'
+        dir = r"D:\projects\SQL-OpenAI-Parsing\data\output"
+        sps = ['stg.PullData_RussellUS2_Constituent_prc', 
+               'MergeData_RussellUS2_Constituent_prc', 
+               'PullData_Russell2_PortfolioHolding_prc']
+        pathes = [f'{dir}\\{x}.yaml' for x in sps]
+        build_upstream_chain(pathes, ttn)
+        print(pathes)
 
 
 if __name__ == '__main__':
