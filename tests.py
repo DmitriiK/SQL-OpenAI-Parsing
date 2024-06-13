@@ -2,7 +2,7 @@ import unittest
 
 from modules.data_classes import SP_DCSs, DCS, DCS_Type
 from modules.pipeline import export_to_yaml
-from modules.mermaider import build_upstream_chain_from_yaml
+from modules.mermaider import build_upstream_chain_from_yaml, _get_sql_object_synonyms_
 
 fld = r"D:\projects\DataFeedEngine\DataFeedEngineIndex" 
 file_name = fld + r'\dbo\Stored Procedures\Merge\RussellUS\MergeData_RussellUS2_Constituent_prc.sql'
@@ -38,7 +38,13 @@ class TestChain(unittest.TestCase):
                'PullData_Russell2_PortfolioHolding_prc']
         pathes = [f'{dir}\\{x}.yaml' for x in sps]
         build_upstream_chain_from_yaml(pathes, ttn)
-
+        
+    def test_sql_syn(self):
+        ret = _get_sql_object_synonyms_('stg.xxx') 
+        assert ret == {'stg.xxx', '[stg].[xxx]', 'stg.[xxx]', '[stg].xxx'}
+        
+        ret = _get_sql_object_synonyms_('dbo.xxx')
+        assert ret == {'dbo.xxx', '[dbo].[xxx]', 'dbo.[xxx]', '[dbo].xxx', 'xxx'}
 
 if __name__ == '__main__':
     print('main')
