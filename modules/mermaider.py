@@ -10,6 +10,7 @@ if no new SP for SP have been find, recursion stops,  - we are at the top level 
 """
 
 
+
 def build_upstream_chain_from_yaml(files: List[str], table_name: str):
     sps_stms = (SP_DCSs.from_yaml_file(f) for f in files)
     build_upstream_chain(sps_stms, table_name=table_name)
@@ -17,12 +18,34 @@ def build_upstream_chain_from_yaml(files: List[str], table_name: str):
 
 def build_upstream_chain(sps_stms: Iterable[SP_DCSs], table_name: str):
     # upsteam_sps = [sp for sp in sps_stms if any(dcs.target_table == table_name for dcs in sp.DCSs)]
+    l_tn = _get_sql_object_synonyms(table_name)
     for sp in sps_stms:
-        stms = (stm for stm in sp.DCSs if stm.target_table == table_name)
-        for stm in stms:
-            print(sp.sp_name)
-            for st in stm.source_tables:
-                build_upstream_chain(sps_stms, st)
+        # stms = (stm for stm in sp.DCSs if stm.target_table == table_name)
+        for stm in sp.DCSs:
+            if stm.target_table in l_tn and stm.source_tables:
+                print(sp.sp_name)
+                for st in stm.source_tables:
+                    print(f'{st}-->{table_name}')
+                    build_upstream_chain(sps_stms, st)
+
+
+def _get_sql_object_synonyms(object_name: str) -> List[str]:
+    ret = [object_name]
+    dot, sb1, sb2, defsch = '.', '[', ']', 'dbo'
+
+    def envsb(s: str) -> str:  # envelope in []
+        return f'{sb1}{s}{sb2}'
+    if dot not in object_name:
+        ret.append(f'{defsch}.{object_name}')
+        if sb1 not in object_name:
+            ret.append(f'{envsb(defsch)}.{envsb(object_name)}')
+            
+    else:
+        sn, tn = object_name.split(dot)  # schema name and table/view/whatever name
+        if not sn.startswith(sb1) and not tn.startswith(sb1):
+            ret.append(f'{envsb(sn)}.{envsb(tn)}')
+        # there are more cases to take into account
+    return ret
         
             
     
