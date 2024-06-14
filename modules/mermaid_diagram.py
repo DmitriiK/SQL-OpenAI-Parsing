@@ -4,7 +4,7 @@ class MermaidNode:
     _current_id = 0  # Class attribute to keep track of the next ID
 
     def __init__(self, node_caption: str, node_id: str = None, id_is_caption=True):
-        MermaidNode._current_id = + 1
+        MermaidNode._current_id += 1
         if id_is_caption:
             self.node_id = node_caption
         else:
@@ -24,8 +24,11 @@ class MermaidDiagram:
         self.nodes = []
         self.edges = []
 
-    def add_node(self, node_caption: str, node_id: str = None):
-        mn = MermaidNode(node_caption, node_id)
+    def add_node(self, node_caption: str, node_id: str = None, id_is_caption=True):
+        same_node = [x for x in self.nodes if x.node_caption == node_caption or x.node_id == node_id]
+        if same_node:
+            return same_node[0].node_id
+        mn = MermaidNode(node_caption, node_id, id_is_caption)
         self.nodes.append(mn)
         return mn.node_id
 

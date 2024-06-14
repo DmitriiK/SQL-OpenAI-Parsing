@@ -2,6 +2,7 @@
 from typing import List, Iterable
 from itertools import product
 from modules.data_classes import SP_DCSs
+from modules.mermaid_diagram import MermaidDiagram, MermaidEdge, MermaidNode
 """
 taking list of SPs, 
 finding target table as target table in the SP list  of the statements,
@@ -11,30 +12,35 @@ if no new SP for SP have been find, recursion stops,  - we are at the top level 
 """
 
 
-def build_upstream_chain_from_yaml(files: List[str], table_name: str):
+def build_upstream_chain_from_yaml(files: List[str], trg_tbl: str):
     sps_stms = [SP_DCSs.from_yaml_file(f) for f in files]
-    cb = chain_builder(sps_stms, table_name)
-    cb.build_upstream_chain(sps_stms, table_name=table_name)
+    cb = chain_builder(sps_stms)
+    cb.build_upstream_chain(trg_tbl)
+    mmd_out = cb.mmd.generate_mermaid_code()
+    print(mmd_out)
 
 
 class chain_builder:
-    def __init__(self, sps_stms: Iterable[SP_DCSs], table_name: str):
-        self.table_name = table_name
-        self.target_obj_syn = _get_sql_object_synonyms_(table_name)
+    def __init__(self, sps_stms: Iterable[SP_DCSs]):
+        self.recursion_depth = 0
         self.sps_stms = sps_stms
+        self.mmd = MermaidDiagram()
 
-    def build_upstream_chain(self):
+    def build_upstream_chain(self, trg_tbl: str):
         # upsteam_sps = [sp for sp in sps_stms if any(dcs.target_table == table_name for dcs in sp.DCSs)]
-
+        self.recursion_depth += 1
+        trg_tbls_syn = _get_sql_object_synonyms_(trg_tbl)
         for sp in self.sps_stms:
-            # stms = (stm for stm in sp.DCSs if stm.target_table == table_name)
             for stm in sp.DCSs:
-                if stm.target_table in self.target_obj_syn and stm.source_tables:
+                if stm.target_table in trg_tbls_syn and stm.source_tables:
                     print(sp.sp_name)
+                    trg_node_id = self.mmd.add_node(node_caption=stm.target_table, id_is_caption=False)
                     for st in stm.source_tables:
-                        print(f'{st}-->{self.table_name}')
-                        self.table_name
-                        self.build_upstream_chain()
+                        src_node_id = self.mmd.add_node(node_caption=st, id_is_caption=False)
+                        self.mmd.add_edge(target=trg_node_id, source=src_node_id,
+                                          caption=f'{stm.crud_type}: {sp.sp_name}')
+                        print(f'{st}-->{trg_tbl}')
+                        self.build_upstream_chain(st)
 
 
 def _get_sql_object_synonyms_(object_name: str) -> Iterable[str]:
