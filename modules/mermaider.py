@@ -12,21 +12,29 @@ if no new SP for SP have been find, recursion stops,  - we are at the top level 
 
 
 def build_upstream_chain_from_yaml(files: List[str], table_name: str):
-    sps_stms = (SP_DCSs.from_yaml_file(f) for f in files)
-    build_upstream_chain(sps_stms, table_name=table_name)
+    sps_stms = [SP_DCSs.from_yaml_file(f) for f in files]
+    cb = chain_builder(sps_stms, table_name)
+    cb.build_upstream_chain(sps_stms, table_name=table_name)
 
 
-def build_upstream_chain(sps_stms: Iterable[SP_DCSs], table_name: str):
-    # upsteam_sps = [sp for sp in sps_stms if any(dcs.target_table == table_name for dcs in sp.DCSs)]
-    l_tn = _get_sql_object_synonyms_(table_name)
-    for sp in sps_stms:
-        # stms = (stm for stm in sp.DCSs if stm.target_table == table_name)
-        for stm in sp.DCSs:
-            if stm.target_table in l_tn and stm.source_tables:
-                print(sp.sp_name)
-                for st in stm.source_tables:
-                    print(f'{st}-->{table_name}')
-                    build_upstream_chain(sps_stms, st)
+class chain_builder:
+    def __init__(self, sps_stms: Iterable[SP_DCSs], table_name: str):
+        self.table_name = table_name
+        self.target_obj_syn = _get_sql_object_synonyms_(table_name)
+        self.sps_stms = sps_stms
+
+    def build_upstream_chain(self):
+        # upsteam_sps = [sp for sp in sps_stms if any(dcs.target_table == table_name for dcs in sp.DCSs)]
+
+        for sp in self.sps_stms:
+            # stms = (stm for stm in sp.DCSs if stm.target_table == table_name)
+            for stm in sp.DCSs:
+                if stm.target_table in self.target_obj_syn and stm.source_tables:
+                    print(sp.sp_name)
+                    for st in stm.source_tables:
+                        print(f'{st}-->{self.table_name}')
+                        self.table_name
+                        self.build_upstream_chain()
 
 
 def _get_sql_object_synonyms_(object_name: str) -> Iterable[str]:
