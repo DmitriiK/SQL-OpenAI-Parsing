@@ -48,3 +48,9 @@ class SP_DCSs(BaseModel):
             yaml_data = yaml.safe_load(file)
             inst = cls(**yaml_data)
             return inst
+
+class ViewSourceTables(BaseModel):
+    """Data source tables (or views), been referenced in the view
+    """
+    view_name: str = Field(description='Target table for data-changing SQL statement')
+    source_tables: List[str] = Field(description='Names of source tables or views for SQL statement')

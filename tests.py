@@ -1,13 +1,19 @@
 import unittest
 
 from modules.data_classes import SP_DCSs, DCS, DCS_Type
-from modules.pipeline import export_to_yaml
+from modules.pipeline import export_to_yaml, analyze_views
 from modules.mermaider import build_upstream_chain_from_yaml, _get_sql_object_synonyms_
 from modules.mermaid_diagram import MermaidDiagram
 
 fld = r"D:\projects\DataFeedEngine\DataFeedEngineIndex" 
 file_name = fld + r'\dbo\Stored Procedures\Merge\RussellUS\MergeData_RussellUS2_Constituent_prc.sql'
 file_yml_to_dc = r'D:\projects\SQL-OpenAI-Parsing\data\output\MergeData_RussellUS2_Constituent_prc.yaml'
+
+class TestParsing(unittest.TestCase):
+    
+    def test_view_parsing(self):
+        analyze_views()
+        
 
 
 class TestChain(unittest.TestCase):
