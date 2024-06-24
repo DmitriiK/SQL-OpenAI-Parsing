@@ -2,7 +2,7 @@
 from typing import List, Iterable
 from itertools import product
 from modules.data_classes import SP_DCSs
-from modules.mermaid_diagram import MermaidDiagram, MermaidEdge, MermaidNode
+from modules.mermaid_diagram import MermaidDiagram
 """
 taking list of SPs, 
 finding target table as target table in the SP list  of the statements,
