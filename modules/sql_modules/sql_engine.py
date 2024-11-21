@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy.engine import URL
 from sqlalchemy import create_engine, text
 
@@ -26,15 +27,35 @@ class SQL_Executor():
 
         self.sql_serv, self.db_name, self.driver = sql_serv, db_name, driver
         self.engine = create_engine(connection_url, connect_args={'timeout': 60})
+        self.connection = None
+
+    def ensure_connection(self):
+        if self.connection is None or not self.connection.closed:
+            logging.info(f'connecting to {self.sql_serv}; DB: {self.db_name}')
+            self.connection = self.engine.connect()
+            logging.info('connected')
+
+    def close_connection(self):
+        if self.connection is not None and not self.connection.closed:
+            self.connection.close()
     
     def get_sql_result(self, sql: str):
         query = text(sql)
-        print('connecting..')
+        logging.info('connecting..')        
         with self.engine.connect() as connection:
-            print('connected!')
+            logging.info('connected!')
             cursor = connection.execute(query)
             for row in cursor:
                 yield row
+    
+    def get_relations(self, object_name: str):
+        with open(r'modules\sql_modules\scripts\get_dependent_objects.sql', 'r') as f:
+            sql = f.read()
+        # sql += "\nAND d.referencing_id = object_id(:object_name)"
+        query = text(sql)
+        self.ensure_connection()
+        result = self.connection.execute(query, {"object_name": object_name}).fetchall()
+        return result
 
 
 def test():
