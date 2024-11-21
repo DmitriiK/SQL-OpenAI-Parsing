@@ -12,17 +12,28 @@ logging.basicConfig(
 
 class TestSQL(unittest.TestCase):
 
+    def __init__(self, *args, **kwargs):
+        self.exr = SQL_Executor()
+        super(TestSQL, self).__init__(*args, **kwargs)
+
     def test_sql_connection(self):
-        exr = SQL_Executor()
-        ret = exr.get_sql_result("SELECT 1 as c1")
+        ret = self.exr.get_sql_result("SELECT 1 as c1")
         for row in ret:
             assert row.c1
             print(row.c1)
         
-    def test_get_relations(self):
-        exr = SQL_Executor()
-        ret = exr.get_relations('dbo.datafeedOut_applyChangesCompanyNames_prc')
+    def test_get_referenced(self):
+        ret = self.exr.get_relations('dbo.datafeedOut_applyChangesCompanyNames_prc', get_referenced=True)
+        assert ret
         print(ret)
+
+    def test_get_referencing(self):
+        ret = self.exr.get_relations('dataFeedOut_SearchCompanyNamesUsPubFile_tbl', get_referenced=False)
+        assert ret
+        print(ret)
+
+
+
 
 
 

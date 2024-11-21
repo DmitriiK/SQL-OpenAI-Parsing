@@ -1,8 +1,11 @@
 import logging
+from typing import List, Tuple
+
 from sqlalchemy.engine import URL
 from sqlalchemy import create_engine, text
 
 from modules.sql_modules.sql_config import SQL_Config
+from modules.sql_modules.utils import get_table_schema_db
 import config_data as cfg
 
 
@@ -46,11 +49,30 @@ class SQL_Executor():
             self.close_connection()
         return result
 
-    def get_relations(self, object_name: str):
+    def get_relations(self, object_name: str, get_referenced=True) -> List[Tuple]:
+        """Get SQL dependencies using sys.sql_expression_dependencies views
+        Args:
+            object_name (str): sql object name
+            get_referenced (bool, optional): if true - taking dependent, child objects. Defaults to True.
+
+        Returns:
+            _type_: _description_
+        """
         with open(r'modules\sql_modules\scripts\get_dependent_objects.sql', 'r') as f:
             sql = f.read()
-        result = self.get_sql_result(sql, object_name=object_name)
+            if get_referenced:
+                sql += '\nAND d.referencing_id = object_id(:object_name)'
+                result = self.get_sql_result(sql, object_name=object_name)
+            else:  # get depending, parent  objects
+                referenced_entity_name, referenced_schema_name, db = get_table_schema_db(object_name)
+                sql += '\nAND referenced_entity_name = :referenced_entity_name'
+                is_dbo = referenced_schema_name == 'dbo'
+                sql += f'\nAND (referenced_schema_name = :referenced_schema_name {'OR referenced_schema_name IS NULL' if is_dbo else ''})'
+                result = self.get_sql_result(sql, referenced_entity_name=referenced_entity_name,
+                                             referenced_schema_name=referenced_schema_name)        
         return result
+
+
 
 
 def test():
