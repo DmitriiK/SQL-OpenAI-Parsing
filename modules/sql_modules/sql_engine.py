@@ -2,36 +2,33 @@ import logging
 from sqlalchemy.engine import URL
 from sqlalchemy import create_engine, text
 
-connection_string_template = (
-    'mssql+pyodbc://{sql_serv}/{db_name}?'
-    'driver=ODBC+Driver+17+for+SQL+Server;'
-    'Trusted_Connection=yes;'
-    'Encrypt=yes;'
-    'TrustServerCertificate=yes;'
-)
+from modules.sql_modules.sql_config import SQL_Config
+import config_data as cfg
 
 
 class SQL_Executor():
-    def __init__(self, sql_serv: str, db_name: str, driver: str):
+    def __init__(self):
+        sql_cfg = SQL_Config.load_config(cfg.SQL_CONFIG_FILE_PATH)
         connection_url = URL.create(
             "mssql+pyodbc",
-            host=sql_serv,
-            database=db_name,
+            host=sql_cfg.sql_server,
+            database=sql_cfg.sql_db,
             query={
-                "driver": driver,
+                "driver": sql_cfg.odbc_driver,
                 "TrustServerCertificate": "yes",
                 "Trusted_Connection": "yes",
                 "Encrypt": "yes"
             },
         )
 
-        self.sql_serv, self.db_name, self.driver = sql_serv, db_name, driver
+        self.sql_server, self.db_name, self.driver = sql_cfg.sql_server, sql_cfg.sql_db, sql_cfg.odbc_driver
         self.engine = create_engine(connection_url, connect_args={'timeout': 60})
         self.connection = None
+        self.close_connection_finally = True
 
     def ensure_connection(self):
         if self.connection is None or not self.connection.closed:
-            logging.info(f'connecting to {self.sql_serv}; DB: {self.db_name}')
+            logging.info(f'connecting to {self.sql_server}; DB: {self.db_name}')
             self.connection = self.engine.connect()
             logging.info('connected')
 
@@ -44,7 +41,10 @@ class SQL_Executor():
         self.ensure_connection()
         cursor = self.connection.execute(query, sql_params)
         # self.close_connection()
-        return cursor.fetchall()
+        result = cursor.fetchall()
+        if self.close_connection_finally:
+            self.close_connection()
+        return result
 
     def get_relations(self, object_name: str):
         with open(r'modules\sql_modules\scripts\get_dependent_objects.sql', 'r') as f:
