@@ -39,22 +39,17 @@ class SQL_Executor():
         if self.connection is not None and not self.connection.closed:
             self.connection.close()
     
-    def get_sql_result(self, sql: str):
+    def get_sql_result(self, sql: str, **sql_params):
         query = text(sql)
-        logging.info('connecting..')        
-        with self.engine.connect() as connection:
-            logging.info('connected!')
-            cursor = connection.execute(query)
-            for row in cursor:
-                yield row
-    
+        self.ensure_connection()
+        cursor = self.connection.execute(query, sql_params)
+        # self.close_connection()
+        return cursor.fetchall()
+
     def get_relations(self, object_name: str):
         with open(r'modules\sql_modules\scripts\get_dependent_objects.sql', 'r') as f:
             sql = f.read()
-        # sql += "\nAND d.referencing_id = object_id(:object_name)"
-        query = text(sql)
-        self.ensure_connection()
-        result = self.connection.execute(query, {"object_name": object_name}).fetchall()
+        result = self.get_sql_result(sql, object_name=object_name)
         return result
 
 
