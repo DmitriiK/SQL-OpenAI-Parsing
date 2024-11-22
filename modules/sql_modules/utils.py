@@ -37,3 +37,9 @@ def create_obj_name_for_replacement(obj_name: str, obj_name2: str):
         return f'{nnn[-2]}.{obj_name2}'
     return obj_name2
 
+
+def script_file_read(file_name: str):
+    with open(rf'modules\sql_modules\scripts\{file_name}.sql', 'r') as f:
+        sql = f.read()
+    return sql
+

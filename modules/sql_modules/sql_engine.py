@@ -5,13 +5,13 @@ from sqlalchemy.engine import URL
 from sqlalchemy import create_engine, text
 
 from modules.sql_modules.sql_config import SQL_Config
-from modules.sql_modules.utils import get_table_schema_db
+from modules.sql_modules.utils import get_table_schema_db, script_file_read
 import config_data as cfg
 
 
 class SQL_Executor():
-    def __init__(self):
-        sql_cfg = SQL_Config.load_config(cfg.SQL_CONFIG_FILE_PATH)
+    def __init__(self, sql_cfg: SQL_Config = None):
+        sql_cfg = sql_cfg or SQL_Config.load_config(cfg.SQL_CONFIG_FILE_PATH)
         connection_url = URL.create(
             "mssql+pyodbc",
             host=sql_cfg.sql_server,
@@ -25,12 +25,13 @@ class SQL_Executor():
         )
 
         self.sql_server, self.db_name, self.driver = sql_cfg.sql_server, sql_cfg.sql_db, sql_cfg.odbc_driver
+        self.other_sql_dbs = sql_cfg.other_sql_dbs
         self.engine = create_engine(connection_url, connect_args={'timeout': 60})
         self.connection = None
         self.close_connection_finally = True
 
     def ensure_connection(self):
-        if self.connection is None or not self.connection.closed:
+        if self.connection is None or self.connection.closed:
             logging.info(f'connecting to {self.sql_server}; DB: {self.db_name}')
             self.connection = self.engine.connect()
             logging.info('connected')
@@ -49,7 +50,7 @@ class SQL_Executor():
             self.close_connection()
         return result
 
-    def get_relations(self, object_name: str, get_referenced=True) -> List[Tuple]:
+    def get_relations(self, object_name: str, get_referenced=True, referencing_db_name: str = None) -> List[Tuple]:
         """Get SQL dependencies using sys.sql_expression_dependencies views
         Args:
             object_name (str): sql object name
@@ -58,19 +59,55 @@ class SQL_Executor():
         Returns:
             _type_: _description_
         """
-        with open(r'modules\sql_modules\scripts\get_dependent_objects.sql', 'r') as f:
-            sql = f.read()
-            if get_referenced:
-                sql += '\nAND d.referencing_id = object_id(:object_name)'
-                result = self.get_sql_result(sql, object_name=object_name)
-            else:  # get depending, parent  objects
-                referenced_entity_name, referenced_schema_name, db = get_table_schema_db(object_name)
-                sql += '\nAND referenced_entity_name = :referenced_entity_name'
-                is_dbo = referenced_schema_name == 'dbo'
-                sql += f'\nAND (referenced_schema_name = :referenced_schema_name {'OR referenced_schema_name IS NULL' if is_dbo else ''})'
-                result = self.get_sql_result(sql, referenced_entity_name=referenced_entity_name,
-                                             referenced_schema_name=referenced_schema_name)        
+        sql = script_file_read('get_dependent_objects')
+        if referencing_db_name and referencing_db_name != self.db_name:
+            sql = sql.replace('.sys.', referencing_db_name + '.sys.')
+        if get_referenced:
+            sql += '\nAND d.referencing_id = object_id(:object_name)'
+            sql_params = dict(object_name=object_name,
+                              referencing_db_name=referencing_db_name or self.db_name) 
+        else:  # get depending, parent  objects
+            referenced_entity_name, referenced_schema_name, referenced_db = get_table_schema_db(object_name)
+            sql += '\nAND referenced_entity_name = :referenced_entity_name'
+
+            or_schema_cond = 'OR referenced_schema_name IS NULL' if referenced_schema_name == 'dbo' else ''
+            sql += f'\nAND (referenced_schema_name = :referenced_schema_name {or_schema_cond})'
+            if not referenced_db or referenced_db == self.db_name:
+                sql += '\nAND (referenced_database_name = :referenced_database_name or referenced_database_name IS NULL)'
+            else:
+                sql += '\nAND referenced_database_name = :referenced_database_name'
+            sql_params = dict(referenced_entity_name=referenced_entity_name,
+                              referenced_schema_name=referenced_schema_name,
+                              referenced_database_name=referenced_db or self.db_name,
+                              referencing_db_name=referencing_db_name or self.db_name)
+        result = self.get_sql_result(sql, **sql_params)
         return result
+
+    def get_dbs(self):
+        sql = script_file_read('get_dbs')
+        return self.get_sql_result(sql)
+
+    def get_depending(self, object_name: str) -> List[Tuple]:
+        """Retrieve depending objects from all DBs on Server
+        Args:
+            object_name (str): Dependend object name
+        Returns:
+            List[Tuple]: List of Depending objects
+        """
+        self.close_connection_finally = False
+        # dbs = self.get_dbs()
+        dbs = [self.db_name] + self.other_sql_dbs
+        ret = []
+        for db in dbs:
+            db_deps = self.get_relations(object_name=object_name, get_referenced=False,
+                                         referencing_db_name=db)
+            ret.extend(db_deps)
+        self.close_connection_finally = True
+        return ret
+
+        
+
+
 
 
 

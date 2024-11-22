@@ -28,7 +28,14 @@ class TestSQL(unittest.TestCase):
         print(ret)
 
     def test_get_referencing(self):
-        ret = self.exr.get_relations('dataFeedOut_SearchCompanyNamesUsPubFile_tbl', get_referenced=False)
+        refed_tbl = 'DataFeedEngineCache.dbo.dataFeedOut_SearchCompanyNamesUsPubFile_tbl'
+        ret = self.exr.get_relations(refed_tbl, get_referenced=False)
+        assert ret
+        print(ret)
+
+    def test_get_depending(self):
+        refed_tbl = 'DataFeedEngineCache.dbo.dataFeedOut_SearchCompanyNamesUsPubFile_tbl'
+        ret = self.exr.get_depending(refed_tbl)
         assert ret
         print(ret)
 
