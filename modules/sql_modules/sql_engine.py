@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List, Tuple
 
 from sqlalchemy.engine import URL
@@ -61,7 +62,7 @@ class SQL_Executor():
         """
         sql = script_file_read('get_dependent_objects')
         if referencing_db_name and referencing_db_name != self.db_name:
-            sql = sql.replace('.sys.', referencing_db_name + '.sys.')
+            sql = re.sub(r'\bsys\.', f'{referencing_db_name}.sys.', sql)
         if get_referenced:
             sql += '\nAND d.referencing_id = object_id(:object_name)'
             sql_params = dict(object_name=object_name,
