@@ -40,6 +40,10 @@ class TestSQL(unittest.TestCase):
         assert ret
         print(ret)
 
+    def test_get_module_def(self):
+        modef = self.exr.get_module_def('dbo.MergeData_RussellUS2_Constituent_prc')
+        assert modef
+        print(modef)
 
 
 

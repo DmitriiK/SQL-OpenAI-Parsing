@@ -12,9 +12,9 @@ def get_table_schema_db(object_name: str) -> Tuple[str, str, str]:
         case 1:
             return (ss[0], 'dbo', None)  # table name only means dbo by default
         case 2:
-            return (ss[1], ss[0], None)  # table name only means dbo by default
+            return (ss[1], ss[0], None)  # table name and schema name
         case 3:
-            return (ss[2], ss[1], ss[0])  # table name only means dbo by default
+            return (ss[2], ss[1], ss[0])
         case _:
             raise ValueError('incorrect name of object')
 
@@ -42,4 +42,8 @@ def script_file_read(file_name: str):
     with open(rf'modules\sql_modules\scripts\{file_name}.sql', 'r') as f:
         sql = f.read()
     return sql
+
+
+def db_name_inject(db_name: str, sql: str):
+    return re.sub(r'\bsys\.', f'{db_name}.sys.', sql)
 

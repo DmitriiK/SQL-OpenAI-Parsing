@@ -1,12 +1,11 @@
 import logging
-import re
 from typing import List, Tuple
 
 from sqlalchemy.engine import URL
 from sqlalchemy import create_engine, text
 
 from modules.sql_modules.sql_config import SQL_Config
-from modules.sql_modules.utils import get_table_schema_db, script_file_read
+from modules.sql_modules.sql_string_helper import get_table_schema_db, script_file_read, db_name_inject
 import config_data as cfg
 
 
@@ -62,7 +61,7 @@ class SQL_Executor():
         """
         sql = script_file_read('get_dependent_objects')
         if referencing_db_name and referencing_db_name != self.db_name:
-            sql = re.sub(r'\bsys\.', f'{referencing_db_name}.sys.', sql)
+            sql = db_name_inject(referencing_db_name, sql)
         if get_referenced:
             sql += '\nAND d.referencing_id = object_id(:object_name)'
             sql_params = dict(object_name=object_name,
@@ -106,19 +105,25 @@ class SQL_Executor():
         self.close_connection_finally = True
         return ret
 
-        
-
-
-
-
+    def get_module_def(self, object_name: str) -> str:
+        """
+        Gets the definition of a SQL Server view or stored procedure.        
+        Args:
+            object_name (str): The name of the view or stored procedure.            
+        Returns:
+            str: The definition of the view or stored procedure.
+        """
+        nnn = get_table_schema_db(object_name)
+        db_name = nnn[2] or ''
+        sql = script_file_read('get_module_def')
+        if db_name and db_name != self.db_name:
+            sql = db_name_inject(db_name, sql)
+        sql_param = dict(object_name=object_name)
+        return self.get_sql_result(sql, **sql_param)
 
 
 def test():
-    SQL_SERVER = 'QTDFEDBDV01.ciqdev.com\\feeds'
-    DB_NAME = 'DataFeedEnginePrice'
-    driver = 'ODBC Driver 17 for SQL Server'
-
-    xx = SQL_Executor(SQL_SERVER, DB_NAME, driver)
+    xx = SQL_Executor()
     result = xx.get_sql_result('select 1 as xx')
     for row in result:
         print(row.xx)
