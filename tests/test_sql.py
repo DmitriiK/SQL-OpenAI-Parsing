@@ -1,5 +1,6 @@
 import unittest
 import logging
+from rich import print
 
 from modules.sql_modules.sql_engine import SQL_Executor
 
@@ -34,7 +35,7 @@ class TestSQL(unittest.TestCase):
         print(ret)
 
     def test_get_depending(self):
-        refed_tbl = 'DataFeedEngineCache.dbo.dataFeedOut_SearchCompanyNamesUsPubFile_tbl'
+        refed_tbl = 'RussellUS2_Constituent_tbl' # 'DataFeedEngineCache.dbo.dataFeedOut_SearchCompanyNamesUsPubFile_tbl'
         ret = self.exr.get_depending(refed_tbl)
         assert ret
         print(ret)
