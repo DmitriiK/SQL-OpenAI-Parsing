@@ -42,18 +42,17 @@ class LLMCommunicator:
             {example_output}
         """
 
-        self.output_parser = YamlOutputParser(pydantic_object=SP_DCSs)
-        format_instructions = self.output_parser.get_format_instructions()
+        # self.output_parser = YamlOutputParser(pydantic_object=SP_DCSs)
+        #format_instructions = self.output_parser.get_format_instructions()
         # print(format_instructions)
 
         self.prompt = PromptTemplate(
             template=pr_mess,
             input_variables=['input_sql_script'],
-            partial_variables={"format_instructions": format_instructions,
-                               "example": example,
-                               },
+            partial_variables={"example": example},  # "format_instructions": format_instructions,
         )
-        self.chain = self.prompt | self.llm  # | output_parser
+        llm = self.llm.with_structured_output(SP_DCSs)
+        self.chain = self.prompt | llm  # | output_parser
 
     def request_and_parse(self, sql_script: str) -> SP_DCSs:
         prompt_params = {'input_sql_script': sql_script}
@@ -62,12 +61,12 @@ class LLMCommunicator:
         logging.info(f'got request from LLM, len = {len(raw_r.content)}, trying to parse')
         raw_r.content = _strip_square_brackets(raw_r.content)  # otherwise it will fail on [dbo].
         # print(f'yaml: {raw_r.content}')
-        parsed_r = self.output_parser.parse(raw_r.content)
+        # parsed_r = self.output_parser.parse(raw_r.content)
         tu = raw_r.response_metadata['token_usage']
         self.input_tokens += tu['prompt_tokens']
         self.output_tokens += tu['completion_tokens']
-        print(parsed_r)
-        return parsed_r
+        # print(parsed_r)
+        # return parsed_r
 
 
 # if __name__ == "__main__":

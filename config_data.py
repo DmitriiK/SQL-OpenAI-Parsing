@@ -28,5 +28,7 @@ INPUT_PATH_BASE_DIR = r'D:\projects\DataFeedEngine\DataFeedEngineIndex'
 OUTPUT_PATH = r'.\data\output'
 OUTPUT_FILE_EXTENSION = 'yaml'
 
+SQL_CONFIG_FILE_PATH = r'modules\sql_modules\sql_config.yaml'
+
 
 

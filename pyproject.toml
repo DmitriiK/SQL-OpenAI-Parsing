@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "sql-openai-parsing"
+version = "0.1.0"
+description = ""
+authors = ["dmitrii.kalmanovich <dmitrii_kalmanovich@AVVDID733>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sqlalchemy = "^2.0.36"
+pyodbc = "^5.2.0"
+python-dotenv = "^1.0.1"
+tiktoken = "^0.8.0"
+langchain = "^0.3.7"
+langchain-openai = "^0.2.9"
+rich = "^13.9.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

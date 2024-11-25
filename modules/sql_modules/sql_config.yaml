@@ -1,0 +1,6 @@
+sql_server: QTDFEDBDV01.ciqdev.com\feeds
+sql_db: DataFeedEngineIndex 
+other_sql_dbs:
+  - DataFeedEngineCache
+  - IndexData
+odbc_driver: 'ODBC Driver 17 for SQL Server'
