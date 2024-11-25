@@ -1,5 +1,6 @@
 import logging
 import re
+from pathlib import Path
 
 import tiktoken
 from langchain.output_parsers import YamlOutputParser
@@ -25,13 +26,13 @@ class LLMCommunicator:
 
     def __prepare_prompt(self):
 
-        with open(PARSE_SP_PROMPT_PATH) as f:
+        with open(Path(PARSE_SP_PROMPT_PATH)) as f:
             pr_mess = f.read()
             
-        with open(SP_EXAMPLE_PATH) as f:
+        with open(Path(SP_EXAMPLE_PATH)) as f:
             sql_script_example = f.read()
             
-        with open(SP_EXAMPLE_OUTPUT_PATH) as f:
+        with open(Path(SP_EXAMPLE_OUTPUT_PATH)) as f:
             example_output = f.read()
             
         example = f"""Input example:
