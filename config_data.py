@@ -21,7 +21,7 @@ LLM_MODEL_NAME = GPT_Model.GPT_4o
 
 PARSE_SP_PROMPT_PATH = r'prompt/parse_sp_prompt.txt'
 SP_EXAMPLE_PATH = r'prompt/examples/sp_example.sql'
-SP_EXAMPLE_OUTPUT_PATH = r'prompt\examples\sp_example.yaml'
+SP_EXAMPLE_OUTPUT_PATH = r'prompt/examples/sp_example.yaml'
 
 INPUT_PATH_SPs = r'D:\projects\DataFeedEngine\DataFeedEngineIndex\*\Stored procedures\*\*.sql'
 INPUT_PATH_BASE_DIR = r'D:\projects\DataFeedEngine\DataFeedEngineIndex'

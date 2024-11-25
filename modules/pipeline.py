@@ -28,13 +28,13 @@ def analyze_file_by_llm(sql_script_path: str, model=None):
     with open(sql_script_path) as f:
         script = f.read()
         ln = len(script)
-        if ln > 10000:
+        if ln > 100000:
             logging.warning(f'script len = {len(script)} if too big, from file {sql_script_path}. Skipping')
             return
         logging.info(f'parsing string, len = {len(script)}, from file {sql_script_path}')
     out = model.request_and_parse(script)
     logging.info(f'spend {model.input_tokens + model.output_tokens} tokens')
-    export_to_yaml(out, dir=r'.\data\output')
+    export_to_yaml(out, dir=Path(OUTPUT_PATH))
 
 
 def analyze_files_by_llm(skip_existing=True):

@@ -17,9 +17,6 @@ You should also take into consideration the Common Table Expressions, - you need
 If there are some temporary tables been used in SP, - they should be considered similarly to CTE-s, 
 - to work out dependencies, but they should not be included in the output.
 We can have many source tables or views for one target table.
---
-For output use format below:
-{format_instructions}.
 ---
 {example}
 Input SQL script: '{input_sql_script}'.

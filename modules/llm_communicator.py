@@ -7,6 +7,7 @@ from langchain.output_parsers import YamlOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
+
 from config_data import OPENAI_API_KEY, PARSE_SP_PROMPT_PATH, LLM_MODEL_NAME, SP_EXAMPLE_PATH, SP_EXAMPLE_OUTPUT_PATH
 from modules.data_classes import SP_DCSs
 
@@ -58,14 +59,16 @@ class LLMCommunicator:
     def request_and_parse(self, sql_script: str) -> SP_DCSs:
         prompt_params = {'input_sql_script': sql_script}
         self.script_tokens += len(self.encoding.encode(sql_script))
-        raw_r = self.chain.invoke(prompt_params)
-        logging.info(f'got request from LLM, len = {len(raw_r.content)}, trying to parse')
-        raw_r.content = _strip_square_brackets(raw_r.content)  # otherwise it will fail on [dbo].
+        response = self.chain.invoke(prompt_params)
+        return response
+        # TODO https://python.langchain.com/docs/how_to/chat_token_usage_tracking/
+        #logging.info(f'got request from LLM, len = {len(raw_r.content)}, trying to parse')
+        # # raw_r.content = _strip_square_brackets(raw_r.content)  # otherwise it will fail on [dbo].
         # print(f'yaml: {raw_r.content}')
         # parsed_r = self.output_parser.parse(raw_r.content)
-        tu = raw_r.response_metadata['token_usage']
-        self.input_tokens += tu['prompt_tokens']
-        self.output_tokens += tu['completion_tokens']
+        # tu = raw_r.response_metadata['token_usage']
+        # self.input_tokens += tu['prompt_tokens']
+        # # self.output_tokens += tu['completion_tokens']
         # print(parsed_r)
         # return parsed_r
 
