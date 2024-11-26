@@ -3,4 +3,5 @@ sql_db: DataFeedEngineIndex
 other_sql_dbs:
   - DataFeedEngineCache
   - IndexData
+  - CIQData
 odbc_driver: 'ODBC Driver 17 for SQL Server'

@@ -2,10 +2,11 @@ import logging
 from typing import List, Tuple
 
 from sqlalchemy.engine import URL
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, Table
 
 from modules.sql_modules.sql_config import SQL_Config
 from modules.sql_modules.sql_string_helper import get_table_schema_db, script_file_read, db_name_inject
+from modules.data_classes import SQL_Object
 import config_data as cfg
 
 
@@ -86,6 +87,17 @@ class SQL_Executor():
     def get_dbs(self):
         sql = script_file_read('get_dbs')
         return self.get_sql_result(sql)
+
+    def get_dependent(self, object_name: str):
+        xx = self.get_relations(object_name=object_name, get_referenced=True)
+        sqlobs = [SQL_Object(name=x.referenced_entity_name,
+                  schema=x.referenced_schema_name,
+                  db_name=x.referenced_database_name,
+                  type=x.referencing_type_desc,
+                  object_id=x.referenced_id)
+                  for x in xx]
+        return sqlobs
+
 
     def get_depending(self, object_name: str) -> List[Tuple]:
         """Retrieve depending objects from all DBs on Server

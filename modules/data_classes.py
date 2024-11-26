@@ -49,8 +49,39 @@ class SP_DCSs(BaseModel):
             inst = cls(**yaml_data)
             return inst
 
+
 class ViewSourceTables(BaseModel):
     """Data source tables (or views), been referenced in the view
     """
     view_name: str = Field(description='Target table for data-changing SQL statement')
     source_tables: List[str] = Field(description='Names of source tables or views for SQL statement')
+
+
+class DB_Object_Type(Enum):
+    USER_TABLE = 'USER_TABLE'
+    VIEW = 'VIEW'
+    SQL_STORED_PROCEDURE = 'SQL_STORED_PROCEDURE'
+    SQL_SCALAR_FUNCTION = 'SQL_SCALAR_FUNCTION'  
+    SQL_INLINE_TABLE_VALUED_FUNCTION = 'SQL_INLINE_TABLE_VALUED_FUNCTION'
+    CLR_STORED_PROCEDURE = 'CLR_STORED_PROCEDURE'
+
+
+class SQL_Object (BaseModel):
+    """SQL object, table, view, stored procedure, whaever
+
+    """
+    object_id: Optional[int] = Field(default=None)
+    name: str
+    type: DB_Object_Type
+    schema: Optional[str] = Field(default='dbo')
+    db_name: Optional[str] = Field(default=None)
+    server_name:  Optional[str] = Field(default=None)
+
+    @property
+    def full_name(self):
+        nnn = f'{self.schema or 'dbo'}.{self.name}'
+        if self.db_name:
+            nnn = f'{self.db_name}.{nnn}'
+            if self.server_name:
+                nnn = f'{self.server_name}.{nnn}'
+        return nnn

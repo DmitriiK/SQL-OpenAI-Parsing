@@ -23,9 +23,12 @@ class TestSQL(unittest.TestCase):
             assert row.c1
             print(row.c1)
         
-    def test_get_referenced(self):
-        ret = self.exr.get_relations('dbo.datafeedOut_applyChangesCompanyNames_prc', get_referenced=True)
-        assert ret
+    def test_get_dependent(self):
+        tcs = ['DataFeedOut_SnP350V2_Portfolio_vw',  # 'dbo.datafeedOut_applyChangesCompanyNames_prc'
+              ]
+        for object_name in tcs:
+            ret = self.exr.get_dependent(object_name)
+            assert ret
         print(ret)
 
     def test_get_referencing(self):
