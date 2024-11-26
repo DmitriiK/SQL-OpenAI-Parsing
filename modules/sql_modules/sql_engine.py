@@ -88,18 +88,16 @@ class SQL_Executor():
         sql = script_file_read('get_dbs')
         return self.get_sql_result(sql)
 
-    def get_dependent(self, object_name: str):
+    def get_dependent(self, object_name: str) -> List[SQL_Object]:
         xx = self.get_relations(object_name=object_name, get_referenced=True)
         sqlobs = [SQL_Object(name=x.referenced_entity_name,
                   schema=x.referenced_schema_name,
-                  db_name=x.referenced_database_name,
-                  type=x.referencing_type_desc,
+                  db_name=x.referenced_database_name,  # type=x.referencing_type_desc,
                   object_id=x.referenced_id)
                   for x in xx]
         return sqlobs
 
-
-    def get_depending(self, object_name: str) -> List[Tuple]:
+    def get_depending(self, object_name: str) -> List[SQL_Object]:
         """Retrieve depending objects from all DBs on Server
         Args:
             object_name (str): Dependend object name
@@ -111,9 +109,16 @@ class SQL_Executor():
         dbs = [self.db_name] + self.other_sql_dbs
         ret = []
         for db in dbs:
-            db_deps = self.get_relations(object_name=object_name, get_referenced=False,
+            db_deps = self.get_relations(object_name=object_name,
+                                         get_referenced=False,
                                          referencing_db_name=db)
-            ret.extend(db_deps)
+            sqlobs = [SQL_Object(name=x.referencing_object,
+                      schema=x.referencing_object_schema,
+                      db_name=db,
+                      type=x.referencing_type_desc,
+                      object_id=x.referencing_id)
+                      for x in db_deps]                
+            ret.extend(sqlobs)
         self.close_connection_finally = True
         return ret
 
