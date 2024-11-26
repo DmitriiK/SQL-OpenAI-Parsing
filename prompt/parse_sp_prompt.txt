@@ -16,10 +16,13 @@ You should also establish the relationships between the tables (views), been ref
 You should also take into consideration the Common Table Expressions, - you need to de-compose them to source tables and views.
 If there are some temporary tables been used in SP, - they should be considered similarly to CTE-s, 
 - to work out dependencies, but they should not be included in the output.
+You should not consider creation of indexes, - you can just skip such statements.
 We can have many source tables or views for one target table.
 ---
 {example}
-Input SQL script: '{input_sql_script}'.
+Input SQL script: ```SQL
+{input_sql_script}
+```.
 
 
 
