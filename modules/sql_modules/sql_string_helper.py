@@ -19,6 +19,12 @@ def get_table_schema_db(object_name: str) -> Tuple[str, str, str]:
             raise ValueError('incorrect name of object')
 
 
+def sql_objs_are_eq(o1: str, o2: str) -> bool:
+    ooo1 = get_table_schema_db(o1)
+    ooo2 = get_table_schema_db(o2)
+    return all((ooo1[i] or '') != (ooo2[i] or '') for i in range(3))
+
+
 def rename_sql_object(sql_def: str, new_name: str):
     # Regular expression to match creating patterns and capture the original object name
     pattern = r"^(create(?: or alter)?(?:\s+view|\s+procedure|\s+function)?)\s+(\S+\.?\S*)"

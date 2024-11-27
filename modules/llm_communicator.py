@@ -3,7 +3,6 @@ import re
 from pathlib import Path
 
 import tiktoken
-from langchain.output_parsers import YamlOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
@@ -59,6 +58,7 @@ class LLMCommunicator:
     def request_and_parse(self, sql_script: str) -> SP_DCSs:
         prompt_params = {'input_sql_script': sql_script}
         self.script_tokens += len(self.encoding.encode(sql_script))
+        logging.info('requesting llm')
         response = self.chain.invoke(prompt_params)
         return response
         # TODO https://python.langchain.com/docs/how_to/chat_token_usage_tracking/

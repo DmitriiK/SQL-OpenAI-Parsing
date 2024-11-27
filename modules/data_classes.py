@@ -54,7 +54,7 @@ class ViewSourceTables(BaseModel):
     """Data source tables (or views), been referenced in the view
     """
     view_name: str = Field(description='Target table for data-changing SQL statement')
-    source_tables: List[str] = Field(description='Names of source tables or views for SQL statement')
+    source_tables: Optional[List['ViewSourceTables']] = Field(description='Names of source tables or views for SQL statement')
 
 
 class DB_Object_Type(Enum):
@@ -73,13 +73,13 @@ class SQL_Object (BaseModel):
     object_id: Optional[int] = Field(default=None)
     name: str
     type: DB_Object_Type
-    schema: Optional[str] = Field(default='dbo')
+    db_schema: Optional[str] = Field(default='dbo')
     db_name: Optional[str] = Field(default=None)
     server_name:  Optional[str] = Field(default=None)
 
     @property
     def full_name(self):
-        nnn = f'{self.schema or 'dbo'}.{self.name}'
+        nnn = f'{self.db_schema or 'dbo'}.{self.name}'
         if self.db_name:
             nnn = f'{self.db_name}.{nnn}'
             if self.server_name:

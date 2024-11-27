@@ -91,7 +91,7 @@ class SQL_Executor():
     def get_dependent(self, object_name: str) -> List[SQL_Object]:
         xx = self.get_relations(object_name=object_name, get_referenced=True)
         sqlobs = [SQL_Object(name=x.referenced_entity_name,
-                  schema=x.referenced_schema_name,
+                  db_schema=x.referenced_schema_name,
                   db_name=x.referenced_database_name,  # type=x.referencing_type_desc,
                   object_id=x.referenced_id)
                   for x in xx]
@@ -113,7 +113,7 @@ class SQL_Executor():
                                          get_referenced=False,
                                          referencing_db_name=db)
             sqlobs = [SQL_Object(name=x.referencing_object,
-                      schema=x.referencing_object_schema,
+                      db_schema=x.referencing_object_schema,
                       db_name=db,
                       type=x.referencing_type_desc,
                       object_id=x.referencing_id)
