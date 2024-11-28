@@ -22,7 +22,7 @@ def get_table_schema_db(object_name: str) -> Tuple[str, str, str]:
 def sql_objs_are_eq(o1: str, o2: str) -> bool:
     ooo1 = get_table_schema_db(o1)
     ooo2 = get_table_schema_db(o2)
-    return all((ooo1[i] or '') != (ooo2[i] or '') for i in range(3))
+    return all((ooo1[i] or '') == (ooo2[i] or '') for i in range(3))
 
 
 def rename_sql_object(sql_def: str, new_name: str):

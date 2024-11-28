@@ -57,7 +57,7 @@ class LLMCommunicator:
 
     def request_and_parse(self, sql_script: str) -> SP_DCSs:
         prompt_params = {'input_sql_script': sql_script}
-        self.script_tokens += len(self.encoding.encode(sql_script))
+        # self.script_tokens += len(self.encoding.encode(sql_script))
         logging.info('requesting llm')
         response = self.chain.invoke(prompt_params)
         return response
