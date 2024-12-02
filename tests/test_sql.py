@@ -1,8 +1,9 @@
 import unittest
+from typing import List
 import logging
 from rich import print
 
-from modules.sql_modules.sql_engine import SQL_Executor
+from modules.sql_modules.sql_engine import SQL_Executor, DB_Object_Type, SQL_Object
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,6 +16,7 @@ class TestSQL(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         self.exr = SQL_Executor()
+        self.exr.close_connection_finally = False
         super(TestSQL, self).__init__(*args, **kwargs)
 
     def test_sql_connection(self):
@@ -42,6 +44,11 @@ class TestSQL(unittest.TestCase):
         ret = self.exr.get_depending(refed_tbl)
         assert ret
         print(ret)
+        ret_sp: List[SQL_Object] = self.exr.get_depending(refed_tbl, DB_Object_Type.SQL_STORED_PROCEDURE)
+        assert ret_sp
+        assert all([x.type == DB_Object_Type.SQL_STORED_PROCEDURE for x in ret_sp])
+        print(ret_sp)
+
 
     def test_get_module_def(self):
         modef = self.exr.get_module_def('dbo.MergeData_RussellUS2_Constituent_prc')

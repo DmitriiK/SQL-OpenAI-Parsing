@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text, Table
 
 from modules.sql_modules.sql_config import SQL_Config
 from modules.sql_modules.sql_string_helper import get_table_schema_db, script_file_read, db_name_inject
-from modules.data_classes import SQL_Object
+from modules.data_classes import SQL_Object, DB_Object_Type
 import config_data as cfg
 
 
@@ -51,7 +51,8 @@ class SQL_Executor():
             self.close_connection()
         return result
 
-    def get_relations(self, object_name: str, get_referenced=True, referencing_db_name: str = None) -> List[Tuple]:
+    def get_relations(self, object_name: str, get_referenced=True, referencing_db_name: str = None,
+                      referencing_type_descr: DB_Object_Type = None) -> List[Tuple]:
         """Get SQL dependencies using sys.sql_expression_dependencies views
         Args:
             object_name (str): sql object name
@@ -77,10 +78,15 @@ class SQL_Executor():
                 sql += '\nAND (referenced_database_name = :referenced_database_name or referenced_database_name IS NULL)'
             else:
                 sql += '\nAND referenced_database_name = :referenced_database_name'
+
+            if referencing_type_descr:
+                sql += '\nAND ob.type_desc = :referencing_type_descr'
+
             sql_params = dict(referenced_entity_name=referenced_entity_name,
                               referenced_schema_name=referenced_schema_name,
                               referenced_database_name=referenced_db or self.db_name,
-                              referencing_db_name=referencing_db_name or self.db_name)
+                              referencing_db_name=referencing_db_name or self.db_name,
+                              referencing_type_descr=referencing_type_descr.value if referencing_type_descr else None)
         result = self.get_sql_result(sql, **sql_params)
         return result
 
@@ -97,7 +103,7 @@ class SQL_Executor():
                   for x in xx]
         return sqlobs
 
-    def get_depending(self, object_name: str) -> List[SQL_Object]:
+    def get_depending(self, object_name: str, referencing_type_descr: DB_Object_Type = None) -> List[SQL_Object]:
         """Retrieve depending objects from all DBs on Server
         Args:
             object_name (str): Dependend object name
@@ -111,7 +117,8 @@ class SQL_Executor():
         for db in dbs:
             db_deps = self.get_relations(object_name=object_name,
                                          get_referenced=False,
-                                         referencing_db_name=db)
+                                         referencing_db_name=db,
+                                         referencing_type_descr=referencing_type_descr)
             sqlobs = [SQL_Object(name=x.referencing_object,
                       db_schema=x.referencing_object_schema,
                       db_name=db,
