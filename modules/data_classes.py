@@ -22,7 +22,7 @@ class DCS(BaseModel):
     """Data changing SQL statement
     """
     crud_type: DCS_Type = Field(description='One of possible SQL CRUD data-changing types')
-    target_table: str = Field(description='Target table for data-changing SQL statement')
+    target_table: str = Field(description='Target table name for data-changing SQL statement')
     source_tables: Optional[List[str]] = Field(description='Names of source tables or views for SQL statement')
 
     def to_dict(self):
@@ -34,8 +34,10 @@ class DCS(BaseModel):
 
 
 class SP_DCSs(BaseModel):
+    """Compact representation of SQL statements inside some Stored Procedure
+    """
     sp_name: str = Field(description='Stored procedure name')
-    DCSs: List[DCS] = Field()
+    DCSs: List[DCS] = Field(description='Each elememnt in the list corresponds one data-changing SQL statement inside stored procedure')
 
     def to_yaml(self):
         # Convert nested DCS objects to dictionaries

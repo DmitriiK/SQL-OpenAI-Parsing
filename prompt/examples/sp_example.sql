@@ -32,7 +32,7 @@ BEGIN
 		srsTbl2 AS p with (nolock)
 		JOIN  #IDs AS t with (nolock)
 			on p.tradingItemId = t.tradingItemId
-		JOIN [$(DataFeedEngineCache)].[dbo].Russell_PriceIndexDataItem_tbl AS cdi with (nolock)
+		JOIN [DataFeedEngineCach].[dbo].Russell_PriceIndexDataItem_tbl AS cdi with (nolock)
 			on t.indexId = ift.indexCompanyId
 		WHERE 
 			p.endMktValue is not null
@@ -56,7 +56,7 @@ DELETE FROM  RussellUS2_ConstituentDates_tbl
 	WHERE datepart(WEEKDAY, readingDate) IN (1, 7)
 
 	DELETE FROM  RussellUS2_ConstituentDates_tbl
-	WHERE readingDate IN (SELECT holidayDate FROM [$(CIQData)].dbo.ExchangeHoliday_tbl with (nolock) WHERE exchangeId = 106)
+	WHERE readingDate IN (SELECT holidayDate FROM [CIQData].dbo.ExchangeHoliday_tbl with (nolock) WHERE exchangeId = 106)
 
 	
 

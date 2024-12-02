@@ -1,26 +1,25 @@
 You will be provided by some SQL script , that represents the definition of some MS SQL stored procedure.  
 
-You need to analyze it and, and output the list,
-where each entity  corresponds to data-changing (INSERT, UPDATE, DELETE, MERGE, CREATE) SQL statement.
-Let's refer to this entity as DCS.
-If the target of DCS is temporary table, you should not include this statement to the output list, 
-but you should consider these statements in further analysis. 
-For each of DCS-s,  output all entities been referenced, - tables, views, stored procedures. 
-For each of these statements you define one of the data-changing operations, INSERT, UPDATE, DELETE, MERGE, CREATE, DROP.
-You should not produce more than one DCS for each SQL statements in the text. 
-Thus, Merge statement is still one DCS of type Merge, even if it has Insert, Update, Delete inside.
-You should ignore all the statements, that are not related to the operations, that do not change data in the tables.
+You need to analyze it, split it to separate SQL statementns and the output the instance of SP_DCSs clasas, 
+where each element of DCSs attribute corresponds to data-changing (INSERT, UPDATE, DELETE, MERGE, CREATE) SQL statement.
+
+If in some statement the target of DCS is temporary table, or table variable,  
+you should not include correspondent item for it in DCSs, 
+but you should remember it and consider such statements in further analysis. 
+
+If some statetement does not affect data in the tables, like 'SET NOCOUNT ON' or 'print' or creation of indexes, - ignore it.
 'SELECT INTO <some_table> FROM ...' should be considered as INSERT.
 You should also establish the relationships between the tables (views), been referenced in the statements,
- in terms of "target" - "source". 
+ in terms of "target" - "source". Cardinality of this relation is One to zero or Many.
 You should also take into consideration the Common Table Expressions, - you need to de-compose them to source tables and views.
 If there are some temporary tables been used in SP, - they should be considered similarly to CTE-s, 
 - to work out dependencies, but they should not be included in the output.
-You should not consider creation of indexes, - you can just skip such statements.
-We can have many source tables or views for one target table.
+In the final ouput USE Fully Qualified Table Names if Database name or server name is specified explicitely in SQL statement
+('[<db name>].<schema>.<table`>')
 ---
 {example}
-Input SQL script: ```SQL
+Input SQL script: 
+```SQL
 {input_sql_script}
 ```.
 

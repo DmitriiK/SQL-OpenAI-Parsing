@@ -13,7 +13,7 @@ DCSs:
   - '[dbo].srsTbl1' 
   - srsTbl2
   - stg.RussellUS2_IndexToFeedType_vw
-  - '[$(DataFeedEngineCache)].[dbo].Russell_PriceIndexDataItem_tbl'
+  - '[DataFeedEngineCache].[dbo].Russell_PriceIndexDataItem_tbl'
 
 - crud_type: UPDATE
   target_table: stg.[RussellUS2_IndexTradingItem_tbl]
@@ -31,4 +31,4 @@ DCSs:
 - crud_type: DELETE
   target_table: RussellUS2_ConstituentDates_tbl
   source_tables:
-  - '[$(CIQData)].dbo.ExchangeHoliday_tbl'
+  - '[CIQData].dbo.ExchangeHoliday_tbl'

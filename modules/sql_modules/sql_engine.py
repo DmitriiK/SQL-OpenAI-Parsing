@@ -136,7 +136,8 @@ class SQL_Executor():
         if db_name and db_name != self.db_name:
             sql = db_name_inject(db_name, sql)
         sql_param = dict(object_name=object_name)
-        return self.get_sql_result(sql, **sql_param)
+        ret = self.get_sql_result(sql, **sql_param)
+        return ret[0][0] if ret else None
 
 
 def test():
