@@ -68,7 +68,7 @@ class SQL_Executor():
         obj_name_pattern = f'%{nlp}{referenced_entity_name}{nlp}%'
 
         sql += '\nWHERE m.definition LIKE  :obj_name_pattern'
-
+        # TODO consider schema name and []
         if referencing_type_descr:
             sql += '\nAND ob.type_desc = :referencing_type_descr'
 
