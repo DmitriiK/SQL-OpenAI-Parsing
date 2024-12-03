@@ -51,6 +51,32 @@ class SQL_Executor():
             self.close_connection()
         return result
 
+    def get_depending_by_modules_search(self, object_name: str,  referencing_db_name: str = None,
+                                        referencing_type_descr: DB_Object_Type = None) -> List[Tuple]:
+        """Get SQL dependencies using direct search in module defintion in sys.modules
+        Args:
+            object_name (str): sql object name
+        Returns:
+            
+        """
+        sql = script_file_read('get_modules_def')
+        if referencing_db_name and referencing_db_name != self.db_name:
+            sql = db_name_inject(referencing_db_name, sql)
+        referenced_entity_name, referenced_schema_name, referenced_db = get_table_schema_db(object_name)
+
+        nlp = '[^a-zA-Z0-9_]'  # not letter pattern for SQL like by word boundary
+        obj_name_pattern = f'%{nlp}{referenced_entity_name}{nlp}%'
+
+        sql += '\nWHERE m.definition LIKE  :obj_name_pattern'
+
+        if referencing_type_descr:
+            sql += '\nAND ob.type_desc = :referencing_type_descr'
+
+        sql_params = dict(obj_name_pattern=obj_name_pattern,
+                          referencing_type_descr=referencing_type_descr.value if referencing_type_descr else None)
+        result = self.get_sql_result(sql, **sql_params)
+        return result
+ 
     def get_relations(self, object_name: str, get_referenced=True, referencing_db_name: str = None,
                       referencing_type_descr: DB_Object_Type = None) -> List[Tuple]:
         """Get SQL dependencies using sys.sql_expression_dependencies views
@@ -110,6 +136,7 @@ class SQL_Executor():
         Returns:
             List[Tuple]: List of Depending objects
         """
+        ccf_status = self.close_connection_finally
         self.close_connection_finally = False
         # dbs = self.get_dbs()
         dbs = [self.db_name] + self.other_sql_dbs
@@ -126,7 +153,7 @@ class SQL_Executor():
                       object_id=x.referencing_id)
                       for x in db_deps]                
             ret.extend(sqlobs)
-        self.close_connection_finally = True
+        self.close_connection_finally = ccf_status
         return ret
 
     def get_module_def(self, object_name: str) -> str:

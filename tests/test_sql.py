@@ -40,7 +40,7 @@ class TestSQL(unittest.TestCase):
         print(ret)
 
     def test_get_depending(self):
-        refed_tbl = 'RussellUS2_Constituent_tbl' # 'DataFeedEngineCache.dbo.dataFeedOut_SearchCompanyNamesUsPubFile_tbl'
+        refed_tbl = '[DataFeedEngineCache].[dbo].RussellUS_ConstituentFile_tbl' # 'DataFeedEngineCache.dbo.dataFeedOut_SearchCompanyNamesUsPubFile_tbl'
         ret = self.exr.get_depending(refed_tbl)
         assert ret
         print(ret)
@@ -49,11 +49,16 @@ class TestSQL(unittest.TestCase):
         assert all([x.type == DB_Object_Type.SQL_STORED_PROCEDURE for x in ret_sp])
         print(ret_sp)
 
-
     def test_get_module_def(self):
         modef = self.exr.get_module_def('dbo.MergeData_RussellUS2_Constituent_prc')
         assert modef
         print(modef)
+
+    def test_get_get_depending_by_modules_search(self):
+        modef = self.exr.get_depending_by_modules_search('dbo.RussellUS_ConstituentFile_tbl')
+        assert modef
+        print(modef)
+
 
 
 
