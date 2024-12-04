@@ -6,7 +6,7 @@ from joblib import Memory
 from modules.data_classes import SQL_Object, DCS_Type, DB_Object_Type, SP_DCSs
 from .sql_modules.sql_engine import SQL_Executor
 from .llm_communicator import LLMCommunicator
-from .sql_modules.sql_string_helper import sql_objs_are_eq
+from .sql_modules.sql_string_helper import sql_objs_are_eq, get_table_schema_db
 
 
 sx = SQL_Executor()
@@ -35,6 +35,9 @@ def build_data_flow_graph(table_name: str) -> List[SP_DCSs]:
 
     def traverse_dependencies(table_name: str):
         target_tables.append(table_name) # need to track tables already passed to on prev leevels to avoid eternal loop
+        tsd = get_table_schema_db(table_name)
+        if tsd[2] and tsd[2].lower() == 'indexdata':
+            return  # TODO get rid of ugly shit
         depending_sps = sx.get_depending(table_name, DB_Object_Type.SQL_STORED_PROCEDURE)
         for dsp in depending_sps:
             parsed_before = [x for x in ret_chain if sql_objs_are_eq(x.sp_name, dsp.name)]  # TODO compare by full name
@@ -57,7 +60,8 @@ def build_data_flow_graph(table_name: str) -> List[SP_DCSs]:
                     # TODO ret rid on relying on naming conv
                     for vw in (t for t in stm.source_tables if t.endswith('_vw')):
                         vw_tbls = sx.get_dependent(vw) # TODO consider recursive relations in views
-                        src_tbls.extend(vw_tbls)
+                        for vw_tbl in vw_tbls:
+                            src_tbls.append(vw_tbl.full_name)
                     for src_tbl in src_tbls:
                         traverse_dependencies(src_tbl)
 

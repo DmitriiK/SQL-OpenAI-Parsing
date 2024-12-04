@@ -121,10 +121,18 @@ class SQL_Executor():
         return self.get_sql_result(sql)
 
     def get_dependent(self, object_name: str) -> List[SQL_Object]:
+        def type_by_name(name: str):
+            if name.lower().endswith('_vw'):
+                return DB_Object_Type.VIEW
+            if name.lower().endswith('_prc'):
+                return DB_Object_Type.SQL_STORED_PROCEDURE
+            return DB_Object_Type.USER_TABLE
+
         xx = self.get_relations(object_name=object_name, get_referenced=True)
         sqlobs = [SQL_Object(name=x.referenced_entity_name,
                   db_schema=x.referenced_schema_name,
-                  db_name=x.referenced_database_name,  # type=x.referencing_type_desc,
+                  db_name=x.referenced_database_name, 
+                  type=type_by_name(x.referenced_entity_name),  # TODO - get rid of relying on this NC
                   object_id=x.referenced_id)
                   for x in xx]
         return sqlobs

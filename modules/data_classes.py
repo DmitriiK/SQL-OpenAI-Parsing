@@ -74,7 +74,7 @@ class SQL_Object (BaseModel):
     """
     object_id: Optional[int] = Field(default=None)
     name: str
-    type: DB_Object_Type
+    type: DB_Object_Type = Field(default=None)
     db_schema: Optional[str] = Field(default='dbo')
     db_name: Optional[str] = Field(default=None)
     server_name:  Optional[str] = Field(default=None)
