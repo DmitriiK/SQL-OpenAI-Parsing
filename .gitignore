@@ -153,3 +153,4 @@ cython_debug/
 data/output/*.yaml
 tests/test_sql_glot.py
 .DS_Store
+cachedir/*

@@ -1,5 +1,8 @@
 
 from typing import List
+
+from joblib import Memory
+
 from modules.data_classes import SQL_Object, DCS_Type, DB_Object_Type, SP_DCSs
 from .sql_modules.sql_engine import SQL_Executor
 from .llm_communicator import LLMCommunicator
@@ -9,6 +12,13 @@ from .sql_modules.sql_string_helper import sql_objs_are_eq
 sx = SQL_Executor()
 sx.close_connection_finally = False
 llm = LLMCommunicator()
+# Create a joblib memory instance
+memory = Memory("./cachedir", verbose=0)
+
+
+@memory.cache  # just wrapper for caching
+def request_and_parse(sql_script: str) -> SP_DCSs:
+    return llm.request_and_parse(sql_script)
 
 
 def build_data_flow_graph(table_name: str) -> List[SP_DCSs]:
@@ -33,7 +43,7 @@ def build_data_flow_graph(table_name: str) -> List[SP_DCSs]:
                 sp_stms = parsed_before[0]
             else:
                 defn = sx.get_module_def(dsp.full_name)
-                sp_stms = llm.request_and_parse(defn)
+                sp_stms = request_and_parse(defn)
             data_inp_stms = [stm for stm in sp_stms.DCSs
                              if sql_objs_are_eq(stm.target_table, table_name)
                              and stm.source_tables]
