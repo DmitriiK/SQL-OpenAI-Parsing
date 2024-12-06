@@ -6,13 +6,15 @@ from joblib import Memory
 from modules.data_classes import SQL_Object, DCS_Type, DB_Object_Type, SP_DCSs
 from .sql_modules.sql_engine import SQL_Executor
 from .llm_communicator import LLMCommunicator
-from .sql_modules.sql_string_helper import sql_objs_are_eq, get_table_schema_db
+from .sql_modules.sql_string_helper import sql_objs_are_eq, get_table_schema_db, shorten_full_name
 from .pipeline import export_to_yaml
+from .mermaid_diagram import MermaidDiagram
 
 
 sx = SQL_Executor()
 sx.close_connection_finally = False
 llm = LLMCommunicator()
+mmd = MermaidDiagram()
 # Create a joblib memory instance
 memory = Memory("./cachedir", verbose=0)
 
@@ -62,6 +64,9 @@ def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
                 ret_chain.append(sp_stms)
                 yield sp_stms
                 for stm in data_inp_stms:  # TODO consider data flow chains inside SP
+
+                    trg_node_id = mmd.add_node(node_caption=shorten_full_name(stm.target_table), id_is_caption=False)  #TODO - separate 
+
                     src_tbls = [t for t in stm.source_tables
                                 if t.endswith('_tbl')
                                 and not any(sql_objs_are_eq(t, tt) for tt in target_tables)]
@@ -71,9 +76,16 @@ def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
                         for vw_tbl in vw_tbls:
                             src_tbls.append(vw_tbl.full_name)
                     for src_tbl in src_tbls:
+                        src_node_id = mmd.add_node(node_caption=shorten_full_name(src_tbl), id_is_caption=False)
+                        ec = f'{stm.crud_type}: {shorten_full_name(sp_stms.sp_name)}'
+                        mmd.add_edge(target=trg_node_id, source=src_node_id, caption=ec)
+                        print(f'{src_tbl}-->{table_name}')
+
                         yield from traverse_dependencies(src_tbl)
 
     yield from traverse_dependencies(table_name=table_name)
+    mmd_out = mmd.generate_mermaid_code()
+    print(mmd_out)
 
 
 def data_flow_to_yaml(table_name: str, output_folder_path: str) -> int:

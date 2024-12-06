@@ -6,6 +6,19 @@ def parse_db_obj_full_name(obj_name: str) -> List[str]:
     return [x.strip('[]') for x in obj_name.split('.')]
 
 
+def shorten_full_name(object_name: str) -> str:
+    ss = parse_db_obj_full_name(object_name)
+    match len(ss):
+        case 1:
+            return ss[0]
+        case 2:
+            return ss[1] if ss[0] == 'dbo' else '.'.join(ss)
+        case 3:
+            return '.'.join(ss)
+        case _:
+            raise ValueError('incorrect name of object')
+
+
 def get_table_schema_db(object_name: str) -> Tuple[str, str, str]:
     ss = parse_db_obj_full_name(object_name)
     match len(ss):

@@ -23,7 +23,7 @@ class DCS(BaseModel):
     """
     crud_type: DCS_Type = Field(description='One of possible SQL CRUD data-changing types')
     target_table: str = Field(description='Target table name for data-changing SQL statement')
-    source_tables: Optional[List[str]] = Field(description='Names of source tables or views for SQL statement')
+    source_tables: Optional[List[str]] = Field(description='Names of source tables or views for SQL statement', default=None)
 
     def to_dict(self):
         # Create a dictionary representation of the instance with conditional logic

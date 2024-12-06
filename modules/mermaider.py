@@ -1,7 +1,10 @@
 
-from typing import List, Iterable
+from typing import Iterable
 from itertools import product
+from pathlib import Path
+
 from modules.data_classes import SP_DCSs
+from modules.sql_modules.sql_string_helper import sql_objs_are_eq
 from modules.mermaid_diagram import MermaidDiagram
 """
 taking list of SPs, 
@@ -12,8 +15,9 @@ if no new SP for SP have been find, recursion stops,  - we are at the top level 
 """
 
 
-def build_upstream_chain_from_yaml(files: List[str], trg_tbl: str):
-    sps_stms = [SP_DCSs.from_yaml_file(f) for f in files]
+def build_upstream_chain_from_yaml(dir: str, trg_tbl: str):
+    dir = Path(dir)
+    sps_stms = [SP_DCSs.from_yaml_file(f) for f in dir.iterdir()]
     cb = chain_builder(sps_stms)
     cb.build_upstream_chain(trg_tbl)
     mmd_out = cb.mmd.generate_mermaid_code()
@@ -29,10 +33,9 @@ class chain_builder:
     def build_upstream_chain(self, trg_tbl: str):
         # upsteam_sps = [sp for sp in sps_stms if any(dcs.target_table == table_name for dcs in sp.DCSs)]
         self.recursion_depth += 1
-        trg_tbls_syn = _get_sql_object_synonyms_(trg_tbl)
         for sp in self.sps_stms:
             for stm in sp.DCSs:
-                if stm.target_table in trg_tbls_syn and stm.source_tables:
+                if sql_objs_are_eq(stm.target_table, trg_tbl) and stm.source_tables:
                     print(sp.sp_name)
                     trg_node_id = self.mmd.add_node(node_caption=stm.target_table, id_is_caption=False)
                     for st in stm.source_tables:

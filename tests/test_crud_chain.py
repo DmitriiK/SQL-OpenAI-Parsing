@@ -28,15 +28,11 @@ class TestCRUDChain(unittest.TestCase):
         print('test_file_to_data class')
         inst = SP_DCSs.from_yaml_file(file_yml_to_dc)
         print(inst)
-        
+
     def testchain(self):
-        ttn = 'RussellUS2_Constituent_tbl'
-        dir = r"D:\projects\SQL-OpenAI-Parsing\data\output"
-        sps = ['stg.PullData_RussellUS2_Constituent_prc',
-               'MergeData_RussellUS2_Constituent_prc',
-               'PullData_Russell2_PortfolioHolding_prc']
-        paths = [f'{dir}\\{x}.yaml' for x in sps]
-        build_upstream_chain_from_yaml(paths, ttn)
+        ttn = 'RussellUS_Constituent_tbl'
+        dir = r"D:\Code\SQL-OpenAI-Parsing\data\output\target_table = RussellUS_Constituent_tbl"
+        build_upstream_chain_from_yaml(dir, ttn)
 
     def test_sql_syn(self):
         ret = _get_sql_object_synonyms_('stg.xxx') 
