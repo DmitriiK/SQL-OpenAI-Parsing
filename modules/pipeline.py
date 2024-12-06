@@ -1,25 +1,23 @@
-
-import os
-from typing import Iterable
 import glob
 from pathlib import Path
+import os
 
 import logging
 
 from config_data import INPUT_PATH_SPs, INPUT_PATH_BASE_DIR, OUTPUT_FILE_EXTENSION, OUTPUT_PATH
 import modules.llm_communicator as llmc
 from modules.view_parser import extract_table_view_names
-from modules.data_classes import SP_DCSs, DCS, DCS_Type
+from modules.data_classes import SP_DCSs
 
 
 def export_to_yaml(inst: SP_DCSs, dir: str = None, file_name: str = None):
     test_yml_str = inst.to_yaml()
-    print(test_yml_str)
+    if dir and not os.path.exists(dir):
+        os.makedirs(dir)
     file_name = file_name or f'{inst.sp_name}.{OUTPUT_FILE_EXTENSION}'
-    if dir:
-        file_name = os.path.join(dir, file_name)
-    logging.info(f'saving to {file_name}')
-    with open(file_name, 'w') as yaml_file:
+    file_path = Path(dir, file_name) if dir else Path(file_name)
+    logging.info(f'saving to {file_path}')
+    with open(file_path, 'w') as yaml_file:
         yaml_file.write(test_yml_str)
 
 
@@ -45,7 +43,7 @@ def analyze_files_by_llm(skip_existing=True):
 
 
 def analyze_views(skip_existing=False):
-    pattern = os.path.join(INPUT_PATH_BASE_DIR, '**', 'Views', '**', '*.sql')
+    pattern = Path(INPUT_PATH_BASE_DIR, '**', 'Views', '**', '*.sql')
     pathes = get_files_to_parse(pattern, skip_existing)
     for sql_script_path in pathes:
         with open(sql_script_path, 'r') as f:

@@ -1,5 +1,5 @@
 
-from typing import List
+from typing import Iterable
 
 from joblib import Memory
 
@@ -7,6 +7,7 @@ from modules.data_classes import SQL_Object, DCS_Type, DB_Object_Type, SP_DCSs
 from .sql_modules.sql_engine import SQL_Executor
 from .llm_communicator import LLMCommunicator
 from .sql_modules.sql_string_helper import sql_objs_are_eq, get_table_schema_db
+from .pipeline import export_to_yaml
 
 
 sx = SQL_Executor()
@@ -21,8 +22,14 @@ def request_and_parse(sql_script: str) -> SP_DCSs:
     return llm.request_and_parse(sql_script)
 
 
-def build_data_flow_graph(table_name: str) -> List[SP_DCSs]:
-    """To collect all stored procedures and tables, that participate as upstream source of data flow for some table
+def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
+    """To collect all stored procedures and tables, 
+    that participate as upstream source of data flow for some table.
+    taking list of SPs, 
+    finding target table as target table in the SP list  of the statements,
+    for each of the statements take source tables
+    for each of them find SPs, where they are targeted
+    if no new SP for SP have been find, recursion stops,  - we are at the top level of data stream
 
     Args:
         table_name (str): _description_
@@ -53,6 +60,7 @@ def build_data_flow_graph(table_name: str) -> List[SP_DCSs]:
             # filtered out the statements where our table is target for data read
             if data_inp_stms:
                 ret_chain.append(sp_stms)
+                yield sp_stms
                 for stm in data_inp_stms:  # TODO consider data flow chains inside SP
                     src_tbls = [t for t in stm.source_tables
                                 if t.endswith('_tbl')
@@ -63,7 +71,15 @@ def build_data_flow_graph(table_name: str) -> List[SP_DCSs]:
                         for vw_tbl in vw_tbls:
                             src_tbls.append(vw_tbl.full_name)
                     for src_tbl in src_tbls:
-                        traverse_dependencies(src_tbl)
+                        yield from traverse_dependencies(src_tbl)
 
-    traverse_dependencies(table_name=table_name)
-    return ret_chain
+    yield from traverse_dependencies(table_name=table_name)
+
+
+def data_flow_to_yaml(table_name: str, output_folder_path: str) -> int:
+    sps = build_data_flow_graph(table_name=table_name)
+    cnt = 0
+    for sp in sps:
+        export_to_yaml(sp, output_folder_path)
+        cnt += 1
+    return cnt
