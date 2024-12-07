@@ -60,13 +60,13 @@ def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
                              if sql_objs_are_eq(stm.target_table, table_name)
                              and stm.source_tables]
             # filtered out the statements where our table is target for data read
-            if data_inp_stms:
+            if data_inp_stms:  # if we have at least one statement where our table is target
                 ret_chain.append(sp_stms)
                 yield sp_stms
+                # TODO - separate
+                trg_node_id = mmd.add_node(node_caption=shorten_full_name(table_name), id_is_caption=False)
+                
                 for stm in data_inp_stms:  # TODO consider data flow chains inside SP
-
-                    trg_node_id = mmd.add_node(node_caption=shorten_full_name(stm.target_table), id_is_caption=False)  #TODO - separate 
-
                     src_tbls = [t for t in stm.source_tables
                                 if t.endswith('_tbl')
                                 and not any(sql_objs_are_eq(t, tt) for tt in target_tables)]
