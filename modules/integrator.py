@@ -74,7 +74,7 @@ def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
                             src_tbls.append(vw_tbl.full_name)
                     for src_tbl in src_tbls:
                         nc = shorten_full_name(src_tbl)  # new node caption
-                        ec = f'{stm.crud_type}: {shorten_full_name(sp_stms.sp_name)}' # new edge caption
+                        ec = f'{str(stm.crud_type)[0:3]}: {shorten_full_name(sp_stms.sp_name)}'  # new edge caption
                         mmd.add_source_node(node_caption=nc, node_id=trg_node_id, edge_caption=ec)
                         print(f'{src_tbl}-->{table_name}')
 
