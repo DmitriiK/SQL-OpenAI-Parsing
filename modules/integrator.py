@@ -1,9 +1,9 @@
 
 from typing import Iterable
-
+from collections import defaultdict
 from joblib import Memory
 
-from modules.data_classes import SQL_Object, DCS_Type, DB_Object_Type, SP_DCSs
+from modules.data_classes import DB_Object_Type, SP_DCSs
 from .sql_modules.sql_engine import SQL_Executor
 from .llm_communicator import LLMCommunicator
 from .sql_modules.sql_string_helper import sql_objs_are_eq, get_table_schema_db, shorten_full_name
@@ -64,23 +64,29 @@ def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
                 ret_chain.append(sp_stms)
                 yield sp_stms
                 # TODO - separate
-                trg_node_id = mmd.add_node(node_caption=shorten_full_name(table_name), id_is_caption=False)             
+                trg_node_id = mmd.add_node(node_caption=shorten_full_name(table_name), id_is_caption=False)
+                src_tbls = []
+                tbl2stms = defaultdict(list) 
+                # to consider cases when we have several statements for one pair of source-table target table inside SP             
                 for stm in data_inp_stms:  # TODO consider data flow chains inside SP
-                    src_tbls = [t for t in stm.source_tables if t.endswith('_tbl')]
+                    src_tbls.extend([t for t in stm.source_tables if t.endswith('_tbl') and t not in src_tbls])
                     # TODO ret rid on relying on naming conv
                     for vw in (t for t in stm.source_tables if t.endswith('_vw')):
                         vw_tbls = sx.get_dependent(vw)  # TODO consider recursive relations in views
-                        for vw_tbl in vw_tbls:
-                            src_tbls.append(vw_tbl.full_name)
+                        src_tbls.extend([vw_tbl.full_name for vw_tbl in vw_tbls if vw_tbl.full_name not in src_tbls])
                     for src_tbl in src_tbls:
-                        nc = shorten_full_name(src_tbl)  # new node caption
-                        ec = f'{str(stm.crud_type)[0:3]}: {shorten_full_name(sp_stms.sp_name)}'  # new edge caption
-                        mmd.add_source_node(node_caption=nc, node_id=trg_node_id, edge_caption=ec)
-                        print(f'{src_tbl}-->{table_name}')
+                        tbl2stms[src_tbl].append(stm)
+                #  taking source tables from all statmemtns inside SP with aggregation by source table and adding bunch of nodes 
+                for src_tbl, stms in tbl2stms.items():
+                    nc = shorten_full_name(src_tbl)  # new node caption
+                    stms_sum = ','.join([str(stm.crud_type)[0:3] for stm in stms])
+                    ec = f'{shorten_full_name(sp_stms.sp_name)}: {stms_sum}'  # new edge caption
+                    mmd.add_source_node(node_caption=nc, node_id=trg_node_id, edge_caption=ec)
+                    print(f'{src_tbl}-->{table_name}')
 
-                    for src_tbl in src_tbls:
-                        if not any(sql_objs_are_eq(src_tbl, tt) for tt in target_tables):
-                            yield from traverse_dependencies(src_tbl)
+                for src_tbl in tbl2stms:
+                    if not any(sql_objs_are_eq(src_tbl, tt) for tt in target_tables):
+                        yield from traverse_dependencies(src_tbl)
 
     yield from traverse_dependencies(table_name=table_name)
     mmd_out = mmd.generate_mermaid_code()
