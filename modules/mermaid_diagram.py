@@ -32,6 +32,17 @@ class MermaidDiagram:
         self.nodes.append(mn)
         return mn.node_id
 
+    def add_node_with_edge(self, node_caption: str, node_id: str = None, edge_caption: str = None,
+                           id_is_caption=True, new_node_is_source=True):
+        new_node_id = self.add_node(node_caption=node_caption, id_is_caption=id_is_caption)
+        src_node_id, trg_node_id = (new_node_id, node_id) if new_node_is_source else (node_id, new_node_id)
+        self.add_edge(target=trg_node_id, source=src_node_id, caption=edge_caption)
+        return new_node_id
+
+    def add_source_node(self, node_caption: str, node_id: str = None, edge_caption: str = None):
+        return self.add_node_with_edge(node_caption=node_caption, node_id=node_id, edge_caption=edge_caption,
+                                       id_is_caption=False, new_node_is_source=True)
+
     def add_edge(self, source: str, target: str, caption: str = None):
         self.edges.append(MermaidEdge(source, target, caption))
 

@@ -64,24 +64,23 @@ def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
                 ret_chain.append(sp_stms)
                 yield sp_stms
                 # TODO - separate
-                trg_node_id = mmd.add_node(node_caption=shorten_full_name(table_name), id_is_caption=False)
-                
+                trg_node_id = mmd.add_node(node_caption=shorten_full_name(table_name), id_is_caption=False)             
                 for stm in data_inp_stms:  # TODO consider data flow chains inside SP
-                    src_tbls = [t for t in stm.source_tables
-                                if t.endswith('_tbl')
-                                and not any(sql_objs_are_eq(t, tt) for tt in target_tables)]
+                    src_tbls = [t for t in stm.source_tables if t.endswith('_tbl')]
                     # TODO ret rid on relying on naming conv
                     for vw in (t for t in stm.source_tables if t.endswith('_vw')):
-                        vw_tbls = sx.get_dependent(vw) # TODO consider recursive relations in views
+                        vw_tbls = sx.get_dependent(vw)  # TODO consider recursive relations in views
                         for vw_tbl in vw_tbls:
                             src_tbls.append(vw_tbl.full_name)
                     for src_tbl in src_tbls:
-                        src_node_id = mmd.add_node(node_caption=shorten_full_name(src_tbl), id_is_caption=False)
-                        ec = f'{stm.crud_type}: {shorten_full_name(sp_stms.sp_name)}'
-                        mmd.add_edge(target=trg_node_id, source=src_node_id, caption=ec)
+                        nc = shorten_full_name(src_tbl)  # new node caption
+                        ec = f'{stm.crud_type}: {shorten_full_name(sp_stms.sp_name)}' # new edge caption
+                        mmd.add_source_node(node_caption=nc, node_id=trg_node_id, edge_caption=ec)
                         print(f'{src_tbl}-->{table_name}')
 
-                        yield from traverse_dependencies(src_tbl)
+                    for src_tbl in src_tbls:
+                        if not any(sql_objs_are_eq(src_tbl, tt) for tt in target_tables):
+                            yield from traverse_dependencies(src_tbl)
 
     yield from traverse_dependencies(table_name=table_name)
     mmd_out = mmd.generate_mermaid_code()
