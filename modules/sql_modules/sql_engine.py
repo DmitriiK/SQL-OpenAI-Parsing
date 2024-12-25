@@ -2,8 +2,7 @@ import logging
 from typing import List, Tuple
 
 from sqlalchemy.engine import URL
-from sqlalchemy import create_engine, text, Table
-
+from sqlalchemy import create_engine, text
 from modules.sql_modules.sql_config import SQL_Config
 from modules.sql_modules.sql_string_helper import get_table_schema_db, script_file_read, db_name_inject
 from modules.data_classes import SQL_Object, DB_Object_Type
@@ -50,10 +49,26 @@ class SQL_Executor():
         if self.close_connection_finally:
             self.close_connection()
         return result
+    
+    def get_sql_object(self, object_name: str) -> SQL_Object:
+        sql = script_file_read('get_sql_object')
+        _, _, obj_db = get_table_schema_db(object_name)
+        if obj_db and obj_db != self.db_name:
+            sql = db_name_inject(obj_db, sql)
+        sql_params = dict(object_name=object_name,)
+        result = self.get_sql_result(sql, **sql_params)
+        if result:
+            result_dict = result[0]._asdict()  # Convert Row object to dictionary
+            sql_object = SQL_Object(**result_dict)
+            return sql_object
+        else:
+            raise ValueError("No object found with the provided name")
+
+        # return SQL_Object(object_id=result.ob, name = result.na, db_schema = result.)
 
     def get_depending_by_modules_search(self, object_name: str,  referencing_db_name: str = None,
                                         referencing_type_descr: DB_Object_Type = None) -> List[Tuple]:
-        """Get SQL dependencies using direct search in module defintion in sys.modules
+        """Get SQL dependencies using direct search in module definition in sys.modules
         Args:
             object_name (str): sql object name
         Returns:
