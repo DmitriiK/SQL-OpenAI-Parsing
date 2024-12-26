@@ -31,7 +31,16 @@ class TestSQL(unittest.TestCase):
             ret = self.exr.get_sql_object(object_name)
             assert ret
             print(ret) 
- 
+            
+    def test_get_view_components(self):
+        tcs = ['vComplexView',]
+        for object_name in tcs:
+            ret = self.exr.get_view_components(view_name=object_name, deep_dive=True)
+            assert ret
+            assert len(ret) > 3
+            # TODO -correct DB name
+        print(ret)
+        
     def test_get_dependent(self):
         tcs = ['vComplexView',]
         for object_name in tcs:

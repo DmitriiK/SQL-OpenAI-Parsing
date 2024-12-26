@@ -136,6 +136,22 @@ class SQL_Executor():
         sql = script_file_read('get_dbs')
         return self.get_sql_result(sql)
 
+    def get_view_components(self, view_name: str, deep_dive=False) -> List[SQL_Object]:
+        ret_lst = []
+        
+        def get_next_level(vn: str):
+            obs = self.get_dependent(vn)
+            if not deep_dive:
+                ret_lst.extend(obs)
+            else:
+                ret_lst.extend([x for x in obs if x.type == DB_Object_Type.USER_TABLE])
+                child_views = [x for x in obs if x.type == DB_Object_Type.VIEW]
+                for cv in child_views:
+                    get_next_level(vn=cv.full_name)
+                    
+        get_next_level(view_name)
+        return ret_lst
+
     def get_dependent(self, object_name: str) -> List[SQL_Object]:
         def sql_row2data_class(x):
             so = SQL_Object(name=x.referenced_entity_name,
@@ -152,8 +168,8 @@ class SQL_Executor():
                 else:
                     logging.warning(f'object {f_name} is missing')
             return so
-
-        xx = self.get_relations(object_name=object_name, get_referenced=True)
+        _, _, db = get_table_schema_db(object_name=object_name)
+        xx = self.get_relations(object_name=object_name, get_referenced=True, referencing_db_name=db)
         return [sql_row2data_class(x) for x in xx]
 
     def get_depending(self, object_name: str, referencing_type_descr: DB_Object_Type = None) -> List[SQL_Object]:
