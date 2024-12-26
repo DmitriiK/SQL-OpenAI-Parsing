@@ -136,7 +136,7 @@ class SQL_Executor():
         sql = script_file_read('get_dbs')
         return self.get_sql_result(sql)
 
-    def get_view_components(self, view_name: str, deep_dive=False) -> List[SQL_Object]:
+    def get_view_child_components(self, view_name: str, deep_dive=False) -> List[SQL_Object]:
         ret_lst = []
         
         def get_next_level(vn: str):

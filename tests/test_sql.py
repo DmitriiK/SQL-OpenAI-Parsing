@@ -32,10 +32,10 @@ class TestSQL(unittest.TestCase):
             assert ret
             print(ret) 
             
-    def test_get_view_components(self):
+    def test_get_view_child_components(self):
         tcs = ['vComplexView',]
         for object_name in tcs:
-            ret = self.exr.get_view_components(view_name=object_name, deep_dive=True)
+            ret = self.exr.get_view_child_components(view_name=object_name, deep_dive=True)
             assert ret
             assert len(ret) > 3
             # TODO -correct DB name
