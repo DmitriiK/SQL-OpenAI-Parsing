@@ -70,6 +70,12 @@ class DB_Object_Type(Enum):
     SQL_INLINE_TABLE_VALUED_FUNCTION = 'SQL_INLINE_TABLE_VALUED_FUNCTION'
     CLR_STORED_PROCEDURE = 'CLR_STORED_PROCEDURE'
 
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
 
 class SQL_Object (BaseModel):
     """SQL object, table, view, stored procedure, whaever
