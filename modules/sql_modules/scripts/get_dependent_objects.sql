@@ -7,7 +7,9 @@ SELECT
 	d.referenced_database_name, 
 	d.referenced_id,
     referenced_schema_name, 
-	referenced_entity_name
-	 FROM sys.sql_expression_dependencies d
-	 JOIN sys.objects ob on ob.object_id=d.referencing_id
+	referenced_entity_name,
+	referenced_ob.type_desc referenced_type_desc
+	FROM sys.sql_expression_dependencies d
+	JOIN sys.objects ob on ob.object_id=d.referencing_id
+	LEFT JOIN sys.objects referenced_ob on referenced_ob.object_id=d.referenced_id --in the same db
 WHERE is_ambiguous = 0

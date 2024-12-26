@@ -62,7 +62,8 @@ class SQL_Executor():
             sql_object = SQL_Object(**result_dict)
             return sql_object
         else:
-            raise ValueError("No object found with the provided name")
+            logging.warning(f"No object found with the provided name {object_name}")
+            #  raise ValueError("No object found with the provided name")
 
         # return SQL_Object(object_id=result.ob, name = result.na, db_schema = result.)
 
@@ -136,21 +137,24 @@ class SQL_Executor():
         return self.get_sql_result(sql)
 
     def get_dependent(self, object_name: str) -> List[SQL_Object]:
-        def type_by_name(name: str):
-            if name.lower().endswith('_vw'):
-                return DB_Object_Type.VIEW
-            if name.lower().endswith('_prc'):
-                return DB_Object_Type.SQL_STORED_PROCEDURE
-            return DB_Object_Type.USER_TABLE
+        def sql_row2data_class(x):
+            so = SQL_Object(name=x.referenced_entity_name,
+                            db_schema=x.referenced_schema_name or 'dbo',
+                            db_name=x.referenced_database_name,
+                            type=x.referenced_type_desc,
+                            object_id=x.referenced_id)
+            if so.db_name and not so.object_id:  # cross-db relations
+                f_name = f'[{so.db_name}].[{so.db_schema}].[{so.name}]'
+                cross_db_so = self.get_sql_object(f_name)
+                if cross_db_so:
+                    so.object_id = cross_db_so.object_id
+                    so.type = cross_db_so.type
+                else:
+                    logging.warning(f'object {f_name} is missing')
+            return so
 
         xx = self.get_relations(object_name=object_name, get_referenced=True)
-        sqlobs = [SQL_Object(name=x.referenced_entity_name,
-                  db_schema=x.referenced_schema_name,
-                  db_name=x.referenced_database_name, 
-                  type=type_by_name(x.referenced_entity_name),  # TODO - get rid of relying on this NC
-                  object_id=x.referenced_id)
-                  for x in xx]
-        return sqlobs
+        return [sql_row2data_class(x) for x in xx]
 
     def get_depending(self, object_name: str, referencing_type_descr: DB_Object_Type = None) -> List[SQL_Object]:
         """Retrieve depending objects from all DBs on Server
