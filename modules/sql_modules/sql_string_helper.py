@@ -1,6 +1,8 @@
 from typing import List, Tuple
 import re
 
+default_schema = 'dbo'
+
 
 def parse_db_obj_full_name(obj_name: str) -> List[str]:
     return [x.strip('[]') for x in obj_name.split('.')]
@@ -12,7 +14,7 @@ def shorten_full_name(object_name: str) -> str:
         case 1:
             return ss[0]
         case 2:
-            return ss[1] if ss[0] == 'dbo' else '.'.join(ss)
+            return ss[1] if ss[0] == default_schema else '.'.join(ss)
         case 3:
             return '.'.join(ss)
         case _:
@@ -65,4 +67,25 @@ def script_file_read(file_name: str):
 
 def db_name_inject(db_name: str, sql: str):
     return re.sub(r'\bsys\.', f'{db_name}.sys.', sql)
+
+
+def search_by_fully_qualified_name(search_in: str, search_what: str) -> int:
+    def sql_name_regex(inp: str) -> str:
+        return fr'\[\s*{inp}\s*\]|\b{inp}'
+
+    entity_name, schema_name, db = get_table_schema_db(search_what)
+    en_p = sql_name_regex(entity_name) # entity name pattern
+    sh_p = sql_name_regex(schema_name or default_schema)
+    s_m_h = '?' if not schema_name or schema_name == default_schema else ''
+    if not db:
+        reg_str = fr'\b(?:{sh_p}\s*\.){s_m_h}\s*{en_p}\s*\b'
+    else:  # if db
+        db_p = sql_name_regex(db)
+        reg_str = fr'\b(?:{db_p}\s*\.)\s*(?:{sh_p}\s*\.)\s*{en_p}\s*\b'
+    pattern = re.compile(reg_str, re.IGNORECASE)
+    match = pattern.search(search_in)
+    if match:
+        return match.start()
+
+
 
