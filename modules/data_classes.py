@@ -78,7 +78,7 @@ class DB_Object_Type(Enum):
 
 
 class SQL_Object (BaseModel):
-    """SQL object, table, view, stored procedure, whaever
+    """SQL object, table, view, stored procedure, whatever
 
     """
     object_id: Optional[int] = Field(default=None)

@@ -177,7 +177,8 @@ class SQL_Executor():
         Args:
             object_name (str): Dependend object name
         Returns:
-            List[Tuple]: List of Depending objects
+            List[SQL_Object
+            ]: List of Depending objects
         """
         ccf_status = self.close_connection_finally
         self.close_connection_finally = False
