@@ -14,15 +14,13 @@ class TestStringHelper(unittest.TestCase):
 
         for ref, result in test_cases:
             sql = f"""create sp as 
-                select * from {ref}"""
-            pos = search_by_fully_qualified_name(search_in=sql, search_what=search_what)
+                select * from  dbo.tbl_name"""
+            pos = search_by_fully_qualified_name(search_in=sql, search_what=ref)
             if result:
                 assert pos
                 print(f'{ref=};{pos=}')
             else:
                 assert pos is None
-
-
 
 if __name__ == '__main__':
 
