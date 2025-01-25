@@ -2,8 +2,7 @@ import logging
 from typing import List, Tuple
 
 from sqlalchemy.engine import URL
-from sqlalchemy import create_engine, text, Table
-
+from sqlalchemy import create_engine, text
 from modules.sql_modules.sql_config import SQL_Config
 from modules.sql_modules.sql_string_helper import get_table_schema_db, script_file_read, db_name_inject
 from modules.data_classes import SQL_Object, DB_Object_Type
@@ -50,10 +49,27 @@ class SQL_Executor():
         if self.close_connection_finally:
             self.close_connection()
         return result
+    
+    def get_sql_object(self, object_name: str) -> SQL_Object:
+        sql = script_file_read('get_sql_object')
+        _, _, obj_db = get_table_schema_db(object_name)
+        if obj_db and obj_db != self.db_name:
+            sql = db_name_inject(obj_db, sql)
+        sql_params = dict(object_name=object_name,)
+        result = self.get_sql_result(sql, **sql_params)
+        if result:
+            result_dict = result[0]._asdict()  # Convert Row object to dictionary
+            sql_object = SQL_Object(**result_dict)
+            return sql_object
+        else:
+            logging.warning(f"No object found with the provided name {object_name}")
+            #  raise ValueError("No object found with the provided name")
+
+        # return SQL_Object(object_id=result.ob, name = result.na, db_schema = result.)
 
     def get_depending_by_modules_search(self, object_name: str,  referencing_db_name: str = None,
                                         referencing_type_descr: DB_Object_Type = None) -> List[Tuple]:
-        """Get SQL dependencies using direct search in module defintion in sys.modules
+        """Get SQL dependencies using direct search in module definition in sys.modules
         Args:
             object_name (str): sql object name
         Returns:
@@ -120,29 +136,49 @@ class SQL_Executor():
         sql = script_file_read('get_dbs')
         return self.get_sql_result(sql)
 
-    def get_dependent(self, object_name: str) -> List[SQL_Object]:
-        def type_by_name(name: str):
-            if name.lower().endswith('_vw'):
-                return DB_Object_Type.VIEW
-            if name.lower().endswith('_prc'):
-                return DB_Object_Type.SQL_STORED_PROCEDURE
-            return DB_Object_Type.USER_TABLE
+    def get_view_child_components(self, view_name: str, deep_dive=False) -> List[SQL_Object]:
+        ret_lst = []
+        
+        def get_next_level(vn: str):
+            obs = self.get_dependent(vn)
+            if not deep_dive:
+                ret_lst.extend(obs)
+            else:
+                ret_lst.extend([x for x in obs if x.type == DB_Object_Type.USER_TABLE])
+                child_views = [x for x in obs if x.type == DB_Object_Type.VIEW]
+                for cv in child_views:
+                    get_next_level(vn=cv.full_name)
+                    
+        get_next_level(view_name)
+        return ret_lst
 
-        xx = self.get_relations(object_name=object_name, get_referenced=True)
-        sqlobs = [SQL_Object(name=x.referenced_entity_name,
-                  db_schema=x.referenced_schema_name,
-                  db_name=x.referenced_database_name, 
-                  type=type_by_name(x.referenced_entity_name),  # TODO - get rid of relying on this NC
-                  object_id=x.referenced_id)
-                  for x in xx]
-        return sqlobs
+    def get_dependent(self, object_name: str) -> List[SQL_Object]:
+        def sql_row2data_class(x):
+            so = SQL_Object(name=x.referenced_entity_name,
+                            db_schema=x.referenced_schema_name or 'dbo',
+                            db_name=x.referenced_database_name,
+                            type=x.referenced_type_desc,
+                            object_id=x.referenced_id)
+            if so.db_name and not so.object_id:  # cross-db relations
+                f_name = f'[{so.db_name}].[{so.db_schema}].[{so.name}]'
+                cross_db_so = self.get_sql_object(f_name)
+                if cross_db_so:
+                    so.object_id = cross_db_so.object_id
+                    so.type = cross_db_so.type
+                else:
+                    logging.warning(f'object {f_name} is missing')
+            return so
+        _, _, db = get_table_schema_db(object_name=object_name)
+        xx = self.get_relations(object_name=object_name, get_referenced=True, referencing_db_name=db)
+        return [sql_row2data_class(x) for x in xx]
 
     def get_depending(self, object_name: str, referencing_type_descr: DB_Object_Type = None) -> List[SQL_Object]:
         """Retrieve depending objects from all DBs on Server
         Args:
             object_name (str): Dependend object name
         Returns:
-            List[Tuple]: List of Depending objects
+            List[SQL_Object
+            ]: List of Depending objects
         """
         ccf_status = self.close_connection_finally
         self.close_connection_finally = False
