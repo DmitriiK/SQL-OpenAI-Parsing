@@ -4,7 +4,7 @@ from typing import List, Tuple
 from sqlalchemy.engine import URL
 from sqlalchemy import create_engine, text
 from modules.sql_modules.sql_config import SQL_Config
-from modules.sql_modules.sql_string_helper import get_table_schema_db, script_file_read, db_name_inject
+from modules.sql_modules.sql_string_helper import get_table_schema_db_srv, script_file_read, db_name_inject
 from modules.data_classes import SQL_Object, DB_Object_Type
 import config_data as cfg
 
@@ -52,7 +52,7 @@ class SQL_Executor():
     
     def get_sql_object(self, object_name: str) -> SQL_Object:
         sql = script_file_read('get_sql_object')
-        _, _, obj_db = get_table_schema_db(object_name)
+        _, _, obj_db = get_table_schema_db_srv(object_name)
         if obj_db and obj_db != self.db_name:
             sql = db_name_inject(obj_db, sql)
         sql_params = dict(object_name=object_name,)
@@ -78,7 +78,7 @@ class SQL_Executor():
         sql = script_file_read('get_modules_def')
         if referencing_db_name and referencing_db_name != self.db_name:
             sql = db_name_inject(referencing_db_name, sql)
-        referenced_entity_name, referenced_schema_name, referenced_db = get_table_schema_db(object_name)
+        referenced_entity_name, referenced_schema_name, referenced_db = get_table_schema_db_srv(object_name)
 
         nlp = '[^a-zA-Z0-9_]'  # not letter pattern for SQL like by word boundary
         obj_name_pattern = f'%{nlp}{referenced_entity_name}{nlp}%'
@@ -111,7 +111,7 @@ class SQL_Executor():
             sql_params = dict(object_name=object_name,
                               referencing_db_name=referencing_db_name or self.db_name) 
         else:  # get depending, parent  objects
-            referenced_entity_name, referenced_schema_name, referenced_db = get_table_schema_db(object_name)
+            referenced_entity_name, referenced_schema_name, referenced_db = get_table_schema_db_srv(object_name)
             sql += '\nAND referenced_entity_name = :referenced_entity_name'
 
             or_schema_cond = 'OR referenced_schema_name IS NULL' if referenced_schema_name == 'dbo' else ''
@@ -168,7 +168,7 @@ class SQL_Executor():
                 else:
                     logging.warning(f'object {f_name} is missing')
             return so
-        _, _, db = get_table_schema_db(object_name=object_name)
+        _, _, db = get_table_schema_db_srv(object_name=object_name)
         xx = self.get_relations(object_name=object_name, get_referenced=True, referencing_db_name=db)
         return [sql_row2data_class(x) for x in xx]
 
@@ -208,7 +208,7 @@ class SQL_Executor():
         Returns:
             str: The definition of the view or stored procedure.
         """
-        nnn = get_table_schema_db(object_name)
+        nnn = get_table_schema_db_srv(object_name)
         db_name = nnn[2] or ''
         sql = script_file_read('get_module_def')
         if db_name and db_name != self.db_name:

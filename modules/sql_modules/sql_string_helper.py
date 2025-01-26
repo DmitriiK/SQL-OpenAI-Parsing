@@ -5,7 +5,7 @@ default_schema = 'dbo'
 
 
 def parse_db_obj_full_name(obj_name: str) -> List[str]:
-    return [x.strip('[]') for x in obj_name.split('.')]
+    return [x.strip('[] ') for x in obj_name.split('.')]
 
 
 def shorten_full_name(object_name: str) -> str:
@@ -21,23 +21,25 @@ def shorten_full_name(object_name: str) -> str:
             raise ValueError('incorrect name of object')
 
 
-def get_table_schema_db(object_name: str) -> Tuple[str, str, str]:
+def get_table_schema_db_srv(object_name: str) -> Tuple[str, str, str, str]:
     ss = parse_db_obj_full_name(object_name)
     match len(ss):
         case 1:
-            return (ss[0], 'dbo', None)  # table name only means dbo by default
+            return (ss[0], 'dbo', None, None)  # table name only means dbo by default
         case 2:
-            return (ss[1], ss[0], None)  # table name and schema name
+            return (ss[1], ss[0], None, None)  # table name and schema name
         case 3:
-            return (ss[2], ss[1], ss[0])
+            return (ss[2], ss[1], ss[0], None)
+        case 4:
+            return (ss[3], ss[2], ss[1], ss[0])
         case _:
             raise ValueError('incorrect name of object')
 
 
 def sql_objs_are_eq(o1: str, o2: str) -> bool:
-    ooo1 = get_table_schema_db(o1)
-    ooo2 = get_table_schema_db(o2)
-    return all((ooo1[i].lower() if ooo1[i] else '') == (ooo2[i].lower() if ooo2[i] else '') for i in range(3))
+    ooo1 = get_table_schema_db_srv(o1)
+    ooo2 = get_table_schema_db_srv(o2)
+    return all((ooo1[i].lower() if ooo1[i] else '') == (ooo2[i].lower() if ooo2[i] else '') for i in range(4))
 
 
 def rename_sql_object(sql_def: str, new_name: str):
@@ -67,25 +69,25 @@ def script_file_read(file_name: str):
 
 def db_name_inject(db_name: str, sql: str):
     return re.sub(r'\bsys\.', f'{db_name}.sys.', sql)
+    
 
-
-def search_by_fully_qualified_name(search_in: str, search_what: str) -> int:
+def find_sql_objects(search_where, search_what, current_db=None, first_match_only=True) -> List[Tuple[int, int]]:
     def sql_name_regex(inp: str) -> str:
+        """tbl_name => tbl_name or [tbl_name] for regex search with []"""
         return fr'\[\s*{inp}\s*\]|\b{inp}'
 
-    entity_name, schema_name, db = get_table_schema_db(search_what)
-    en_p = sql_name_regex(entity_name) # entity name pattern
-    sh_p = sql_name_regex(schema_name or default_schema)
-    s_m_h = '?' if not schema_name or schema_name == default_schema else ''
-    if not db:
-        reg_str = fr'\b(?:{sh_p}\s*\.){s_m_h}\s*{en_p}\s*\b'
-    else:  # if db
-        db_p = sql_name_regex(db)
-        reg_str = fr'\b(?:{db_p}\s*\.)\s*(?:{sh_p}\s*\.)\s*{en_p}\s*\b'
-    pattern = re.compile(reg_str, re.IGNORECASE)
-    match = pattern.search(search_in)
-    if match:
-        return match.start()
+    entity_name, _, _, _ = get_table_schema_db_srv(search_what) 
+    part_pattern = r"(\[*\s*\w+\s*\]*\.)?" # any word, that might be inside spaces, that might be inside [], followed by a dot
+    re_str = fr"(?<!\w)({part_pattern*3}({sql_name_regex(entity_name)}))(?!\w)"
 
+    object_name_pattern = re.compile(re_str,re.VERBOSE | re.IGNORECASE | re.MULTILINE)
+    matches = []
+    for match in object_name_pattern.finditer(search_where):
+        found = match.group(0)
+        if sql_objs_are_eq(found, search_what):       
+            matches.append((match.start(), match.end()))
+            if first_match_only:
+                break
+    return matches
 
 

@@ -6,7 +6,7 @@ from joblib import Memory
 from modules.data_classes import DB_Object_Type, SP_DCSs, DCS
 from .sql_modules.sql_engine import SQL_Executor
 from .llm_communicator import LLMCommunicator
-from .sql_modules.sql_string_helper import sql_objs_are_eq, get_table_schema_db, shorten_full_name
+from .sql_modules.sql_string_helper import sql_objs_are_eq, get_table_schema_db_srv, shorten_full_name
 from .pipeline import export_to_yaml
 from .mermaid_diagram import MermaidDiagram
 
@@ -67,7 +67,7 @@ def build_data_flow_graph(table_name: str) -> Iterable[SP_DCSs]:
 
     def traverse_dependencies(table_name: str):
         target_tables.append(table_name) # need to track tables already passed to on prev levels to avoid eternal loop
-        tsd = get_table_schema_db(table_name)
+        tsd = get_table_schema_db_srv(table_name)
         if tsd[2] and tsd[2].lower() == 'indexdata':
             return  # TODO get rid of ugly shit
         depending_sps = sx.get_depending(table_name, DB_Object_Type.SQL_STORED_PROCEDURE)
