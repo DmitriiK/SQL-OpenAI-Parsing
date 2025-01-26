@@ -44,6 +44,18 @@ class TestStringHelper(unittest.TestCase):
                 assert result, f'Failed on {search_where=}:  {search_what=}'
             else :
                 assert not result
+
+        search_what = 'stg.my_tbl'
+        test_cases = [
+                ('select * from my_db.stg.my_tbl', True),
+            ]
+        current_db = 'my_db'
+        for search_where, is_match_exp in test_cases:
+            result = find_sql_objects(search_where, search_what, current_db)
+            if is_match_exp:
+                assert result, f'Failed on {search_where=}:  {search_what=}'
+            else :
+                assert not result
         
         print('All tests passed.')
 

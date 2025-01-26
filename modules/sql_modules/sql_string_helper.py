@@ -36,9 +36,12 @@ def get_table_schema_db_srv(object_name: str) -> Tuple[str, str, str, str]:
             raise ValueError('incorrect name of object')
 
 
-def sql_objs_are_eq(o1: str, o2: str) -> bool:
+def sql_objs_are_eq(o1: str, o2: str, default_db: str = None) -> bool:
     ooo1 = get_table_schema_db_srv(o1)
     ooo2 = get_table_schema_db_srv(o2)
+    if default_db:
+        ooo1, ooo2 = list(ooo1), list(ooo2)
+        ooo1[2], ooo2[2] = default_db, default_db
     return all((ooo1[i].lower() if ooo1[i] else '') == (ooo2[i].lower() if ooo2[i] else '') for i in range(4))
 
 
@@ -84,7 +87,7 @@ def find_sql_objects(search_where, search_what, current_db=None, first_match_onl
     matches = []
     for match in object_name_pattern.finditer(search_where):
         found = match.group(0)
-        if sql_objs_are_eq(found, search_what):       
+        if sql_objs_are_eq(found, search_what, current_db):       
             matches.append((match.start(), match.end()))
             if first_match_only:
                 break
